@@ -51,7 +51,10 @@ defined('MOODLE_INTERNAL') || die;
  * @return bool
  */
 function xmldb_html5player_upgrade($oldversion) {
-    global $CFG;
+    global $CFG, $DB;
+
+    require_once($CFG->libdir.'/db/upgradelib.php'); // Core Upgrade-related functions.
+    $dbman = $DB->get_manager(); // Loads ddl manager and xmldb classes.
 
     // Automatically generated Moodle v3.6.0 release upgrade line.
     // Put any upgrade step following this.
@@ -70,6 +73,26 @@ function xmldb_html5player_upgrade($oldversion) {
 
     // Automatically generated Moodle v3.11.0 release upgrade line.
     // Put any upgrade step following this.
+
+    if ($oldversion < 2021111500) {
+        // Add new fields to html5player: intro, introformat, timecreated,
+        $table = new xmldb_table('html5player');
+        $field1 = new xmldb_field('intro', XMLDB_TYPE_TEXT, '4', null, false, false);
+        $field2 = new xmldb_field('introformat', XMLDB_TYPE_INTEGER, '10', true, true, false, 0);
+        $field3 = new xmldb_field('timecreated', XMLDB_TYPE_INTEGER, '10', true, true, false, 0);
+        if (!$dbman->field_exists($table, $field1)) {
+            $dbman->add_field($table, $field1);
+        }
+        if (!$dbman->field_exists($table, $field2)) {
+            $dbman->add_field($table, $field2);
+        }
+        if (!$dbman->field_exists($table, $field3)) {
+            $dbman->add_field($table, $field3);
+        }
+
+        // html5player savepoint reached.
+        upgrade_mod_savepoint(true, 2021111500, 'html5player');
+    }
 
     return true;
 }
