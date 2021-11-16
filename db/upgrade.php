@@ -56,12 +56,12 @@ function xmldb_html5player_upgrade($oldversion) {
     require_once($CFG->libdir.'/db/upgradelib.php'); // Core Upgrade-related functions.
     $dbman = $DB->get_manager(); // Loads ddl manager and xmldb classes.
 
-    if ($oldversion < 2021111500) {
-        // Add new fields to html5player: intro, introformat, timecreated,
+    if ($oldversion < 2021111506) {
+        // Add new fields to html5player: account_id, video_id, width, height.
         $table = new xmldb_table('html5player');
-        $field1 = new xmldb_field('intro', XMLDB_TYPE_TEXT, '4', null, false, false);
-        $field2 = new xmldb_field('introformat', XMLDB_TYPE_INTEGER, '10', true, true, false, 0);
-        $field3 = new xmldb_field('timecreated', XMLDB_TYPE_INTEGER, '10', true, true, false, 0);
+        $field1 = new xmldb_field('sizing', XMLDB_TYPE_CHAR, '50', true, false, false, null);
+        $field2 = new xmldb_field('aspect_ratio', XMLDB_TYPE_CHAR, '50', true, true, false, null);
+        $field3 = new xmldb_field('units', XMLDB_TYPE_CHAR, '50', true, true, false, null);
         if (!$dbman->field_exists($table, $field1)) {
             $dbman->add_field($table, $field1);
         }
@@ -73,8 +73,9 @@ function xmldb_html5player_upgrade($oldversion) {
         }
 
         // html5player savepoint reached.
-        upgrade_mod_savepoint(true, 2021111500, 'html5player');
+        upgrade_mod_savepoint(true, 2021111506, 'html5player');
     }
+
     if ($oldversion < 2021111504) {
         // Add new fields to html5player: account_id, video_id, width, height.
         $table = new xmldb_table('html5player');
@@ -98,6 +99,26 @@ function xmldb_html5player_upgrade($oldversion) {
 
         // html5player savepoint reached.
         upgrade_mod_savepoint(true, 2021111504, 'html5player');
+    }
+
+    if ($oldversion < 2021111500) {
+        // Add new fields to html5player: intro, introformat, timecreated,
+        $table = new xmldb_table('html5player');
+        $field1 = new xmldb_field('intro', XMLDB_TYPE_TEXT, '4', null, false, false);
+        $field2 = new xmldb_field('introformat', XMLDB_TYPE_INTEGER, '10', true, true, false, 0);
+        $field3 = new xmldb_field('timecreated', XMLDB_TYPE_INTEGER, '10', true, true, false, 0);
+        if (!$dbman->field_exists($table, $field1)) {
+            $dbman->add_field($table, $field1);
+        }
+        if (!$dbman->field_exists($table, $field2)) {
+            $dbman->add_field($table, $field2);
+        }
+        if (!$dbman->field_exists($table, $field3)) {
+            $dbman->add_field($table, $field3);
+        }
+
+        // html5player savepoint reached.
+        upgrade_mod_savepoint(true, 2021111500, 'html5player');
     }
 
     return true;

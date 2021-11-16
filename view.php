@@ -59,10 +59,18 @@ $PAGE->set_heading(format_string($course->fullname));
 $PAGE->set_cacheable(false);
 $context = context_course::instance($course->id);
 
+$units = [
+    1 => get_string('pixel','mod_html5player'),
+    2 => get_string('em','mod_html5player'),
+    3 => get_string('percentage','mod_html5player'),
+];
+
+
+
 echo $OUTPUT->header();
-echo html_writer::tag('h1', $html5player->name);
+echo html_writer::tag('h1', $html5player->name, ['class' => 'mb-5']);
 ?>
-<div>
+<div style="max-width: <?= $html5player->width . $units[$html5player->units] ?>; margin: auto;">
     <video-js
             data-account="<?php echo $html5player->account_id ?>"
             data-player="default"
@@ -71,9 +79,7 @@ echo html_writer::tag('h1', $html5player->name);
             data-video-id="<?php echo $html5player->video_id ?>"
             data-playlist-id=""
             data-application-id=""
-            width="<?php echo $html5player->width ?>"
-            height="<?php echo $html5player->height ?>"
-            class="vjs-big-play-centered">
+            class="vjs-big-play-centered vjs-fluid">
     </video-js>
     <script src="https://players.brightcove.net/<?php echo $html5player->account_id ?>/default_default/index.min.js"></script>
 

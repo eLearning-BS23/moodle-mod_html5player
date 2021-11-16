@@ -42,7 +42,6 @@ function html5player_supports(string $feature): ?bool {
             return false;
         case FEATURE_COMPLETION_TRACKS_VIEWS:
             return true;
-            return false;
         default:
             return null;
     }
@@ -59,16 +58,15 @@ function html5player_add_instance($data, $mform) {
 
     require_once($CFG->dirroot.'/mod/html5player/locallib.php');
     var_dump($data->name);
-
+    $data->timecreated = time();
     $data->timemodified = time();
     $data->id = $DB->insert_record('html5player', $data);
-
 
     return $data->id;
 }
 
 /**
- * Update url instance.
+ * Update html5player instance.
  * @param object $data
  * @param object $mform
  * @return bool true
@@ -79,7 +77,7 @@ function html5player_update_instance($data, $mform) {
     require_once($CFG->dirroot.'/mod/html5player/locallib.php');
 
     $data->timemodified = time();
-    $data->id           = $data->instance;
+    $data->id = $data->instance;
 
     $DB->update_record('html5player', $data);
 
@@ -87,7 +85,7 @@ function html5player_update_instance($data, $mform) {
 }
 
 /**
- * Delete url instance.
+ * Delete html5player instance.
  * @param int $id
  * @return bool true
  */
@@ -97,8 +95,6 @@ function html5player_delete_instance($id) {
     if (!$html5player = $DB->get_record('html5player', array('id'=>$id))) {
         return false;
     }
-
-    // $cm = get_coursemodule_from_instance('url', $id);
 
     $DB->delete_records('html5player', array('id'=>$html5player->id));
 

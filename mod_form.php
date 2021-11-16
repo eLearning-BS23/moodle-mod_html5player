@@ -66,7 +66,7 @@ class mod_html5player_mod_form extends moodleform_mod {
         $mform->addHelpButton('video_id', 'video_id', 'html5player');
         $mform->addRule('video_id', null, 'required', null, 'client');
 
-        // Sizing
+        // Sizing.
         $sizingoptions = [
             1 => get_string('responsive','mod_html5player'),
             2 => get_string('fixed','mod_html5player'),
@@ -93,12 +93,13 @@ class mod_html5player_mod_form extends moodleform_mod {
         $aspectratio = get_config('html5player', 'aspect_ratio');
         $mform->setDefault('aspect_ratio', $aspectratio);
 
+        // Unit of height and width.
         $units = [
             1 => get_string('pixel','mod_html5player'),
             2 => get_string('em','mod_html5player'),
             3 => get_string('percentage','mod_html5player'),
         ];
-        $mform->addElement('select', 'units', get_string('aspect_ratio', 'html5player'), $units);
+        $mform->addElement('select', 'units', get_string('units', 'html5player'), $units);
         $mform->addHelpButton('units', 'units', 'html5player');
         $mform->addRule('units', null, 'required', null, 'client');
         $unit = get_config('html5player', 'units');
