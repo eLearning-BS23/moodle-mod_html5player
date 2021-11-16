@@ -28,6 +28,14 @@ $string['pluginadministration'] = 'html5player administration';
 $string['pluginname'] = 'html5player';
 $string['modulename'] = 'HTML5Player';
 $string['modulename_help'] = 'Html5player Help';
+$string['account_id'] = 'Account ID';
+$string['account_id_help'] = 'Brightcove Account ID';
+$string['video_id'] = 'Video ID';
+$string['video_id_help'] = 'Brightcove Video ID';
+$string['width'] = 'Width';
+$string['width_help'] = 'Video Width';
+$string['height'] = 'Height';
+$string['height_help'] = 'Height Help';
 
 $string['modulenameplural'] = 'HTML5Players';
 $string['name'] = 'Name';

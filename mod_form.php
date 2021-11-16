@@ -25,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 require_once ($CFG->dirroot.'/course/moodleform_mod.php');
-require_once($CFG->dirroot.'/mod/url/locallib.php');
+// require_once($CFG->dirroot.'/mod/url/locallib.php');
 
 class mod_html5player_mod_form extends moodleform_mod {
 
@@ -34,9 +34,43 @@ class mod_html5player_mod_form extends moodleform_mod {
 
         $mform =& $this->_form;
 
+        // Adding the "general" fieldset, where all the common settings are showed.
+        $mform->addElement('header', 'general', get_string('general', 'form'));
+
+        // Name of the mod.
         $mform->addElement('text', 'name', get_string('name', 'html5player'), array('size'=>'64'));
         $mform->setType('name', PARAM_TEXT);
         $mform->addRule('name', null, 'required', null, 'client');
+
+        // Video ID.
+        $mform->addElement('text', 'video_id', get_string('video_id', 'html5player'));
+        $mform->setType('video_id', PARAM_TEXT);
+        $mform->addHelpButton('video_id', 'video_id', 'html5player');
+        $mform->addRule('video_id', null, 'required', null, 'client');
+
+        // Account ID.
+        $mform->addElement('text', 'account_id', get_string('account_id', 'html5player'));
+        $mform->setType('account_id', PARAM_TEXT);
+        $mform->addHelpButton('account_id', 'account_id', 'html5player');
+        $mform->addRule('account_id', null, 'required', null, 'client');
+        $account_id = get_config('html5player', 'account_id');
+        $mform->setDefault('account_id', $account_id);
+
+        // Width of the player.
+        $mform->addElement('text', 'width', get_string('width', 'html5player'));
+        $mform->setType('width', PARAM_TEXT);
+        $mform->addHelpButton('width', 'width', 'html5player');
+        $mform->addRule('width', null, 'required', null, 'client');
+        $height = get_config('html5player', 'width');
+        $mform->setDefault('width', $height);
+
+        // Width of the player.
+        $mform->addElement('text', 'height', get_string('height', 'html5player'));
+        $mform->setType('height', PARAM_TEXT);
+        $mform->addHelpButton('height', 'height', 'html5player');
+        $mform->addRule('height', null, 'required', null, 'client');
+        $height = get_config('html5player', 'height');
+        $mform->setDefault('height', $height);
 
         $this->standard_coursemodule_elements();
 

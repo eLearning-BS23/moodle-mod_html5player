@@ -15,22 +15,27 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Version details of html5player.
+ * html5player plugin settings.
  *
- * @package    mod_html5player
+ * @package mod_html5player
  * @copyright  2021 Brain station 23 ltd <>  {@link https://brainstation-23.com/}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+defined('MOODLE_INTERNAL') || die;
 
+if ($ADMIN->fulltree) {
 
-$plugin->version = 2021111504; // The current version (Date: YYYYMMDDXX).
+    $settings->add(new admin_setting_configtext('html5player/account_id',
+        get_string('account_id', 'mod_html5player'),
+        get_string('account_id_help', 'mod_html5player'), '', PARAM_TEXT, 50));
 
-$plugin->requires = 2019111806; // Requires this Moodle version.
+    $settings->add(new admin_setting_configtext('html5player/width',
+        get_string('width', 'mod_html5player'),
+        get_string('width_help', 'mod_html5player'), '', PARAM_TEXT, 50));
 
-$plugin->component = 'mod_html5player'; // Full name of the plugin (used for diagnostics).
+    $settings->add(new admin_setting_configtext('html5player/height',
+        get_string('height', 'mod_html5player'),
+        get_string('height_help', 'mod_html5player'), '', PARAM_TEXT, 50));
 
-$plugin->release = 'v-1.0.0';
-
-$plugin->maturity = MATURITY_STABLE;
+}

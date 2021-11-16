@@ -60,6 +60,24 @@ $PAGE->set_cacheable(false);
 $context = context_course::instance($course->id);
 
 echo $OUTPUT->header();
-echo $html5player->name;
+echo html_writer::tag('h1', $html5player->name);
+?>
+<div>
+    <video-js
+            data-account="<?php echo $html5player->account_id ?>"
+            data-player="default"
+            data-embed="default"
+            controls=""
+            data-video-id="<?php echo $html5player->video_id ?>"
+            data-playlist-id=""
+            data-application-id=""
+            width="<?php echo $html5player->width ?>"
+            height="<?php echo $html5player->height ?>"
+            class="vjs-big-play-centered">
+    </video-js>
+    <script src="https://players.brightcove.net/<?php echo $html5player->account_id ?>/default_default/index.min.js"></script>
+
+</div>
+<?php
 echo $OUTPUT->footer();
 
