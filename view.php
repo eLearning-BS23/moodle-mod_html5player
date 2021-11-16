@@ -80,4 +80,3 @@ echo html_writer::tag('h1', $html5player->name);
 </div>
 <?php
 echo $OUTPUT->footer();
-

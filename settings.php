@@ -30,6 +30,27 @@ if ($ADMIN->fulltree) {
         get_string('account_id', 'mod_html5player'),
         get_string('account_id_help', 'mod_html5player'), '', PARAM_TEXT, 50));
 
+    $sizingoptions = [
+        1 => get_string('responsive','mod_html5player'),
+        2 => get_string('fixed','mod_html5player'),
+    ];
+    $settings->add(new admin_setting_configselect('html5player/sizing',
+        get_string('sizing', 'mod_html5player'),
+        get_string('sizing_help', 'mod_html5player'), '1', $sizingoptions));
+
+    $aspectratios = [
+        1 => get_string('one_by_one','mod_html5player'),
+        2 => get_string('three_by_two','mod_html5player'),
+        3 => get_string('four_by_three','mod_html5player'),
+        4 => get_string('sixteen_by_nine','mod_html5player'),
+        5 => get_string('twenty_one_by_nine','mod_html5player'),
+        6 => get_string('nine_by_sixteen','mod_html5player'),
+        7 => get_string('custom','mod_html5player'),
+    ];
+    $settings->add(new admin_setting_configselect('html5player/aspect_ratio',
+        get_string('aspect_ratio', 'mod_html5player'),
+        get_string('aspect_ratio_help', 'mod_html5player'), '1', $aspectratios));
+
     $settings->add(new admin_setting_configtext('html5player/width',
         get_string('width', 'mod_html5player'),
         get_string('width_help', 'mod_html5player'), '', PARAM_TEXT, 50));
@@ -38,4 +59,12 @@ if ($ADMIN->fulltree) {
         get_string('height', 'mod_html5player'),
         get_string('height_help', 'mod_html5player'), '', PARAM_TEXT, 50));
 
+    $units = [
+        1 => get_string('pixel','mod_html5player'),
+        2 => get_string('em','mod_html5player'),
+        3 => get_string('percentage','mod_html5player'),
+    ];
+    $settings->add(new admin_setting_configselect('html5player/units',
+        get_string('units', 'mod_html5player'),
+        get_string('units_help', 'mod_html5player'), '1', $units));
 }

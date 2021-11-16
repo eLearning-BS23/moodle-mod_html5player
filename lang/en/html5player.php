@@ -23,11 +23,19 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
-$string['html5player'] = 'html5player';
-$string['pluginadministration'] = 'html5player administration';
-$string['pluginname'] = 'html5player';
+
+// System strings.
+$string['html5player'] = 'HTML5Player';
+$string['pluginadministration'] = 'HTML5Player administration';
+$string['pluginname'] = 'HTML5Player';
 $string['modulename'] = 'HTML5Player';
 $string['modulename_help'] = 'Html5player Help';
+$string['modulenameplural'] = 'HTML5Players';
+
+// Mod Form.
+$string['name'] = 'Name';
+
+// Settings.
 $string['account_id'] = 'Account ID';
 $string['account_id_help'] = 'Brightcove Account ID';
 $string['video_id'] = 'Video ID';
@@ -35,7 +43,25 @@ $string['video_id_help'] = 'Brightcove Video ID';
 $string['width'] = 'Width';
 $string['width_help'] = 'Video Width';
 $string['height'] = 'Height';
-$string['height_help'] = 'Height Help';
+$string['height_help'] = 'Video Height';
+$string['units'] = 'Units';
+$string['units_help'] = 'Units of video dimensions';
+$string['aspect_ratio'] = 'Aspect Ratio';
+$string['aspect_ratio_help'] = 'Aspect Ratio/Dimension of the video';
+$string['sizing'] = 'Sizing';
+$string['sizing_help'] = 'Change video player sizing';
 
-$string['modulenameplural'] = 'HTML5Players';
-$string['name'] = 'Name';
+
+// Settings option list.
+$string['pixel'] = 'px';
+$string['em'] = 'em';
+$string['percentage'] = '%';
+$string['one_by_one'] = '1:1';
+$string['three_by_two'] = '3:2';
+$string['four_by_three'] = '4:3';
+$string['sixteen_by_nine'] = '16:9';
+$string['twenty_one_by_nine'] = '21:9';
+$string['nine_by_sixteen'] = '9:16';
+$string['custom'] = 'Custom';
+$string['responsive'] = 'Responsive';
+$string['fixed'] = 'Fixed';
