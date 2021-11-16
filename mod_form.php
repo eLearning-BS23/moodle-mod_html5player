@@ -42,11 +42,15 @@ class mod_html5player_mod_form extends moodleform_mod {
         $mform->setType('name', PARAM_TEXT);
         $mform->addRule('name', null, 'required', null, 'client');
 
-        // Video ID.
-        $mform->addElement('text', 'video_id', get_string('video_id', 'html5player'));
-        $mform->setType('video_id', PARAM_TEXT);
-        $mform->addHelpButton('video_id', 'video_id', 'html5player');
-        $mform->addRule('video_id', null, 'required', null, 'client');
+        // Adding the standard "intro" and "introformat" fields.
+        if ($CFG->branch >= 29) {
+            $this->standard_intro_elements();
+        } else {
+            $this->add_intro_editor();
+        }
+
+        // Add Video Content heading.
+        $mform->addElement('header', 'videocontent', get_string('header:videocontent', 'html5player'));
 
         // Account ID.
         $mform->addElement('text', 'account_id', get_string('account_id', 'html5player'));
@@ -56,6 +60,50 @@ class mod_html5player_mod_form extends moodleform_mod {
         $account_id = get_config('html5player', 'account_id');
         $mform->setDefault('account_id', $account_id);
 
+        // Video ID.
+        $mform->addElement('text', 'video_id', get_string('video_id', 'html5player'));
+        $mform->setType('video_id', PARAM_TEXT);
+        $mform->addHelpButton('video_id', 'video_id', 'html5player');
+        $mform->addRule('video_id', null, 'required', null, 'client');
+
+        // Sizing
+        $sizingoptions = [
+            1 => get_string('responsive','mod_html5player'),
+            2 => get_string('fixed','mod_html5player'),
+        ];
+        $mform->addElement('select', 'sizing', get_string('sizing', 'html5player'),$sizingoptions);
+        $mform->addHelpButton('sizing', 'sizing', 'html5player');
+        $mform->addRule('sizing', null, 'required', null, 'client');
+        $sizingoption = get_config('html5player', 'sizing');
+        $mform->setDefault('sizing', $sizingoption);
+
+        // Aspect Ratio.
+        $aspectratios = [
+            1 => get_string('one_by_one','mod_html5player'),
+            2 => get_string('three_by_two','mod_html5player'),
+            3 => get_string('four_by_three','mod_html5player'),
+            4 => get_string('sixteen_by_nine','mod_html5player'),
+            5 => get_string('twenty_one_by_nine','mod_html5player'),
+            6 => get_string('nine_by_sixteen','mod_html5player'),
+            7 => get_string('custom','mod_html5player'),
+        ];
+        $mform->addElement('select', 'aspect_ratio', get_string('aspect_ratio', 'html5player'), $aspectratios);
+        $mform->addHelpButton('aspect_ratio', 'sizing', 'html5player');
+        $mform->addRule('aspect_ratio', null, 'required', null, 'client');
+        $aspectratio = get_config('html5player', 'aspect_ratio');
+        $mform->setDefault('aspect_ratio', $aspectratio);
+
+        $units = [
+            1 => get_string('pixel','mod_html5player'),
+            2 => get_string('em','mod_html5player'),
+            3 => get_string('percentage','mod_html5player'),
+        ];
+        $mform->addElement('select', 'units', get_string('aspect_ratio', 'html5player'), $units);
+        $mform->addHelpButton('units', 'units', 'html5player');
+        $mform->addRule('units', null, 'required', null, 'client');
+        $unit = get_config('html5player', 'units');
+        $mform->setDefault('units', $unit);
+
         // Width of the player.
         $mform->addElement('text', 'width', get_string('width', 'html5player'));
         $mform->setType('width', PARAM_TEXT);
@@ -64,7 +112,7 @@ class mod_html5player_mod_form extends moodleform_mod {
         $height = get_config('html5player', 'width');
         $mform->setDefault('width', $height);
 
-        // Width of the player.
+        // Height of the player.
         $mform->addElement('text', 'height', get_string('height', 'html5player'));
         $mform->setType('height', PARAM_TEXT);
         $mform->addHelpButton('height', 'height', 'html5player');

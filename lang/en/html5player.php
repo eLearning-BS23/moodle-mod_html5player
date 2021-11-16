@@ -34,6 +34,7 @@ $string['modulenameplural'] = 'HTML5Players';
 
 // Mod Form.
 $string['name'] = 'Name';
+$string['header:videocontent'] = 'Video Content Info';
 
 // Settings.
 $string['account_id'] = 'Account ID';
