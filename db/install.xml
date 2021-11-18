@@ -13,7 +13,10 @@
                 <FIELD NAME="introformat" TYPE="int" LENGTH="4" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" />
 
                 <FIELD NAME="account_id" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Account ID"/>
+                <FIELD NAME="player_id" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Player ID"/>
+                <FIELD NAME="video_type" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Video Type"/>
                 <FIELD NAME="video_id" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Video ID"/>
+                <FIELD NAME="playlist_id" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Video ID"/>
                 <FIELD NAME="sizing" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Sizing"/>
                 <FIELD NAME="aspect_ratio" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Aspect Ratio"/>
                 <FIELD NAME="units" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Units"/>

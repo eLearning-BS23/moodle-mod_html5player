@@ -60,11 +60,39 @@ class mod_html5player_mod_form extends moodleform_mod {
         $account_id = get_config('html5player', 'account_id');
         $mform->setDefault('account_id', $account_id);
 
+        // Player ID.
+        $mform->addElement('text', 'player_id', get_string('player_id', 'html5player'));
+        $mform->setType('player_id', PARAM_TEXT);
+        $mform->addHelpButton('player_id', 'player_id', 'html5player');
+        // $mform->addRule('player_id', null, '', null, 'client');
+        $player_id = get_config('html5player', 'player_id');
+        $mform->setDefault('player_id', $player_id);
+
+        // Video type.
+        $videotypes = [
+            1 => get_string('single','mod_html5player'),
+            2 => get_string('playlist','mod_html5player'),
+        ];
+        $mform->addElement('select', 'video_type', get_string('video_type', 'html5player'), $videotypes);
+        $mform->addHelpButton('video_type', 'video_type', 'html5player');
+        $mform->addRule('video_type', null, 'required', null, 'client');
+        $videotype = get_config('html5player', 'video_type');
+        $mform->setDefault('video_type', $videotype);
+
+        $mform->hideIf('video_id', 'video_type', 'eq', '2');
+        $mform->hideIf('playlist_id', 'video_type', 'eq','1');
+
         // Video ID.
         $mform->addElement('text', 'video_id', get_string('video_id', 'html5player'));
         $mform->setType('video_id', PARAM_TEXT);
         $mform->addHelpButton('video_id', 'video_id', 'html5player');
-        $mform->addRule('video_id', null, 'required', null, 'client');
+        // $mform->addRule('video_id', null, 'required', null, 'client');
+
+        // Playlist ID.
+        $mform->addElement('text', 'playlist_id', get_string('playlist_id', 'html5player'));
+        $mform->setType('playlist_id', PARAM_TEXT);
+        $mform->addHelpButton('playlist_id', 'playlist_id', 'html5player');
+        // $mform->addRule('playlist_id', null, 'required', null, 'client');
 
         // Sizing.
         $sizingoptions = [

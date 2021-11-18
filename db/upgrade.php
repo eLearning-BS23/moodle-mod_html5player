@@ -55,7 +55,26 @@ function xmldb_html5player_upgrade($oldversion) {
 
     require_once($CFG->libdir.'/db/upgradelib.php'); // Core Upgrade-related functions.
     $dbman = $DB->get_manager(); // Loads ddl manager and xmldb classes.
+     if ($oldversion < 2021111508) {
+         // Add new fields to html5player: player_id.
+         $table = new xmldb_table('html5player');
+         $field1 = new xmldb_field('player_id', XMLDB_TYPE_CHAR, '50', true, false, false, null);
+         $field2 = new xmldb_field('playlist_id', XMLDB_TYPE_CHAR, '50', true, false, false, null);
+         $field3 = new xmldb_field('video_type', XMLDB_TYPE_CHAR, '50', true, false, false, null);
 
+         if (!$dbman->field_exists($table, $field1)) {
+             $dbman->add_field($table, $field1);
+         }
+         if (!$dbman->field_exists($table, $field2)) {
+             $dbman->add_field($table, $field2);
+         }
+         if (!$dbman->field_exists($table, $field3)) {
+             $dbman->add_field($table, $field3);
+         }
+
+         // html5player savepoint reached.
+         upgrade_mod_savepoint(true, 2021111508, 'html5player');
+     }
     if ($oldversion < 2021111506) {
         // Add new fields to html5player: account_id, video_id, width, height.
         $table = new xmldb_table('html5player');
