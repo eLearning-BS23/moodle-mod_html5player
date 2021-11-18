@@ -43,7 +43,11 @@ class mod_html5player_mod_form extends moodleform_mod {
         $mform->addRule('name', null, 'required', null, 'client');
 
         // Adding the standard "intro" and "introformat" fields.
-            $this->standard_intro_elements();
+        $this->standard_intro_elements();
+        $element = $mform->getElement('introeditor');
+        $attributes = $element->getAttributes();
+        $attributes['rows'] = 5;
+        $element->setAttributes($attributes);
 
 
         $mform->addElement('textarea','meta_info','Meta info',array(
