@@ -30,6 +30,18 @@ if ($ADMIN->fulltree) {
         get_string('account_id', 'mod_html5player'),
         get_string('account_id_help', 'mod_html5player'), '', PARAM_TEXT, 50));
 
+    $settings->add(new admin_setting_configtext('html5player/player_id',
+        get_string('player_id', 'mod_html5player'),
+        get_string('player_id_help', 'mod_html5player'), 'default', PARAM_TEXT, 50));
+
+    $videotypes = [
+        1 => get_string('single','mod_html5player'),
+        2 => get_string('playlist','mod_html5player'),
+    ];
+    $settings->add(new admin_setting_configselect('html5player/video_type',
+        get_string('video_type', 'mod_html5player'),
+        get_string('video_type_help', 'mod_html5player'), '1', $videotypes));
+
     $sizingoptions = [
         1 => get_string('responsive','mod_html5player'),
         2 => get_string('fixed','mod_html5player'),
