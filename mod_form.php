@@ -43,11 +43,13 @@ class mod_html5player_mod_form extends moodleform_mod {
         $mform->addRule('name', null, 'required', null, 'client');
 
         // Adding the standard "intro" and "introformat" fields.
-        if ($CFG->branch >= 29) {
             $this->standard_intro_elements();
-        } else {
-            $this->add_intro_editor();
-        }
+
+
+        $mform->addElement('textarea','meta_info','Meta info',array(
+            'rows' => '8',
+            'cols' => '60',
+        ));
 
         // Add Video Content heading.
         $mform->addElement('header', 'videocontent', get_string('header:videocontent', 'html5player'));
