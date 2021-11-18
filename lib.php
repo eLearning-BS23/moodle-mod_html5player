@@ -157,7 +157,7 @@ function html5player_get_coursemodule_info($coursemodule) {
     $context = context_module::instance($coursemodule->id);
 
     if (!$html5player = $DB->get_record('html5player', array('id'=>$coursemodule->instance),
-        'id, name, display, displayoptions, tobemigrated, revision, intro, introformat')) {
+        'id, name, display, displayoptions, tobemigrated, intro, introformat,meta_info,account_id,player_id,video_type.video_id=,playlist_id,sizing,aspect_ratio,units,width,height')) {
         return NULL;
     }
 
