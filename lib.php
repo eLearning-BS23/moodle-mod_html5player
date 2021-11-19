@@ -156,7 +156,7 @@ function html5player_get_coursemodule_info($coursemodule) {
     $context = context_module::instance($coursemodule->id);
 
     if (!$html5player = $DB->get_record('html5player', array('id'=>$coursemodule->instance),
-        'id, name, display, displayoptions, tobemigrated, intro, introformat,meta_info,account_id,player_id,video_type.video_id=,playlist_id,sizing,aspect_ratio,units,width,height')) {
+        'id, name, display, displayoptions, tobemigrated, intro, introformat,meta_info, account_id, player_id, video_type, video_id,playlist_id,sizing,aspect_ratio,units,width,height')) {
         return NULL;
     }
 
@@ -404,8 +404,8 @@ function html5player_export_contents($cm, $baseurl) {
  */
 function html5player_dndupload_register() {
     return array('types' => array(
-        array('identifier' => 'text/html', 'message' => get_string('createpage', 'html5player')),
-        array('identifier' => 'text', 'message' => get_string('createpage', 'html5player'))
+        array('identifier' => 'text/html', 'message' => get_string('createhtml5player', 'html5player')),
+        array('identifier' => 'text', 'message' => get_string('createhtml5player', 'html5player'))
     ));
 }
 

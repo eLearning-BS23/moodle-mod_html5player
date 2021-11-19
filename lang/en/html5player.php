@@ -26,6 +26,7 @@ defined('MOODLE_INTERNAL') || die();
 
 // System strings.
 $string['html5player'] = 'HTML5Player';
+$string['createhtml5player'] = 'Add a new html5player';
 $string['pluginadministration'] = 'HTML5Player administration';
 $string['pluginname'] = 'HTML5Player';
 $string['modulename'] = 'HTML5Player';
