@@ -197,7 +197,7 @@ function html5player_get_coursemodule_info($coursemodule) {
  */
 function html5player_get_file_areas($course, $cm, $context) {
     $areas = array();
-    $areas['content'] = get_string('html5playercontent', 'html5player');
+    $areas['content'] = get_string('content', 'html5player');
     return $areas;
 }
 

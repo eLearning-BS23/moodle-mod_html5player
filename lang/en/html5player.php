@@ -27,6 +27,7 @@ defined('MOODLE_INTERNAL') || die();
 // System strings.
 $string['html5player'] = 'HTML5Player';
 $string['createhtml5player'] = 'Add a new html5player';
+$string['content'] = 'Html5player content';
 $string['pluginadministration'] = 'HTML5Player administration';
 $string['pluginname'] = 'HTML5Player';
 $string['modulename'] = 'HTML5Player';
@@ -44,6 +45,7 @@ $string['player_id'] = 'Player ID';
 $string['player_id_help'] = 'Brightcove Player ID';
 $string['video_type'] = 'Video Type';
 $string['video_type_help'] = 'Video Type (Single / Playlist)';
+$string['video'] = 'VIDEO';
 $string['video_id'] = 'Video ID';
 $string['video_id_help'] = 'Brightcove Video ID';
 $string['playlist_id'] = 'Playlist ID';

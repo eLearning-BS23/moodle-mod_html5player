@@ -70,7 +70,7 @@ class mod_html5player_mod_form extends moodleform_mod {
         $mform->addElement('text', 'player_id', get_string('player_id', 'html5player'));
         $mform->setType('player_id', PARAM_TEXT);
         $mform->addHelpButton('player_id', 'player_id', 'html5player');
-        // $mform->addRule('player_id', null, '', null, 'client');
+        $mform->addRule('player_id', get_string('player_id','mod_html5player'), 'required', null, 'client');
         $player_id = get_config('html5player', 'player_id');
         $mform->setDefault('player_id', $player_id);
 

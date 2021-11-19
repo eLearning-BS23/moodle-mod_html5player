@@ -26,6 +26,7 @@ use core_course\output\activity_navigation;
 
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once(dirname(__FILE__) . '/lib.php');
+require_once(dirname(__FILE__) . '/locallib.php');
 $id = optional_param('id', 0, PARAM_INT); // Course_module ID, or.
 $n = optional_param('n', 0, PARAM_INT); // HTML5Player instance ID - it should be named as the first character of the module.
 
@@ -41,7 +42,7 @@ if ($id) {
     throw new Exception('You must specify a course_module ID or an instance ID');
 }
 
-require_login($course, true, $cm);
+require_course_login($course->id, false, $cm);
 
 $event = \mod_html5player\event\course_module_viewed::create(array(
     'objectid' => $PAGE->cm->instance,
@@ -65,22 +66,5 @@ $units = [
     3 => get_string('percentage','mod_html5player'),
 ];
 
-echo $OUTPUT->header();
-echo html_writer::tag('h1', $html5player->name, ['class' => 'mb-5']);
-?>
-<div style="max-width: <?= $html5player->width . $units[$html5player->units] ?>; margin: auto;">
-    <video-js
-            data-account="<?php echo $html5player->account_id ?>"
-            data-player="<?php echo $html5player->player_id ?>"
-            data-embed="default"
-            controls=""
-            data-video-id="<?php echo $html5player->video_id ?>"
-            data-playlist-id="<?php echo $html5player->video_id ? "" : $html5player->playlist_id ?>"
-            data-application-id=""
-            class="vjs-big-play-centered vjs-fluid">
-    </video-js>
-    <script src="https://players.brightcove.net/<?php echo $html5player->account_id ?>/<?php echo $html5player->player_id ?>_default/index.min.js"></script>
+html5player_display_embed_video($html5player,$cm, $course);
 
-</div>
-<?php
-echo $OUTPUT->footer();
