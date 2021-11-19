@@ -151,6 +151,7 @@ function html5player_delete_instance($id) {
 function html5player_get_coursemodule_info($coursemodule) {
     global $CFG, $DB;
     require_once("$CFG->libdir/filelib.php");
+    require_once("$CFG->libdir/resourcelib.php");
     require_once($CFG->libdir.'/completionlib.php');
 
     $context = context_module::instance($coursemodule->id);

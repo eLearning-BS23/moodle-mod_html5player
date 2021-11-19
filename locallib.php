@@ -116,7 +116,7 @@ function  html5player_render_embed_html($html5player, $cm, $course, $completioni
     } else {
         $iscomplete = false;
     }
-    $downloadcertificateurl = $certificate_module->url.'&downloadown=1';
+    $downloadcertificateurl = $certificate_module ?  $certificate_module->url.'&downloadown=1' : null;
 
     // Data to be passed in the template.
     $data = [
