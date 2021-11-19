@@ -34,7 +34,6 @@ const HTML5_TABLE_NAME = 'html5player';
  * @return mixed true if the feature is supported, null if unknown
  */
 function html5player_supports(string $feature): ?bool {
-
     switch($feature) {
         case FEATURE_MOD_ARCHETYPE:           return MOD_ARCHETYPE_RESOURCE;
         case FEATURE_GROUPS:                  return false;
@@ -43,6 +42,7 @@ function html5player_supports(string $feature): ?bool {
         case FEATURE_COMPLETION_TRACKS_VIEWS: return true;
         case FEATURE_GRADE_HAS_GRADE:         return false;
         case FEATURE_GRADE_OUTCOMES:          return false;
+        case FEATURE_BACKUP_MOODLE2:          return true;
         case FEATURE_SHOW_DESCRIPTION:        return true;
 
         default: return null;
@@ -151,7 +151,6 @@ function html5player_delete_instance($id) {
 function html5player_get_coursemodule_info($coursemodule) {
     global $CFG, $DB;
     require_once("$CFG->libdir/filelib.php");
-    require_once("$CFG->dirroot/mod/html5player/locallib.php");
     require_once($CFG->libdir.'/completionlib.php');
 
     $context = context_module::instance($coursemodule->id);
@@ -163,73 +162,28 @@ function html5player_get_coursemodule_info($coursemodule) {
 
     $info = new cached_cm_info();
     $info->name = $html5player->name;
+
     if ($coursemodule->showdescription) {
         // Convert intro to html. Do not filter cached version, filters run at display time.
         $info->content = format_module_intro('html5player', $html5player, $coursemodule->id, false);
     }
 
-    if ($html5player->tobemigrated) {
-        $info->icon ='i/invalid';
+    if ($html5player->display != RESOURCELIB_DISPLAY_POPUP) {
         return $info;
     }
 
-    // See if there is at least one file.
-    $fs = get_file_storage();
-    $files = $fs->get_area_files($context->id, 'mod_html5player', 'content', 0, 'sortorder DESC, id ASC', false, 0, 0, 1);
-    if (count($files) >= 1) {
-        $mainfile = reset($files);
-        $info->icon = file_file_icon($mainfile, 24);
-        $html5player->mainfile = $mainfile->get_filename();
-    }
+    $fullurl = "$CFG->wwwroot/mod/html5player/view.php?id=$coursemodule->id&amp;inpopup=1";
+    $options = empty($html5player->displayoptions) ? array() : unserialize($html5player->displayoptions);
+    $width  = empty($options['popupwidth'])  ? 620 : $options['popupwidth'];
+    $height = empty($options['popupheight']) ? 450 : $options['popupheight'];
+    $wh = "width=$width,height=$height,toolbar=no,location=no,menubar=no,copyhistory=no,status=no,directories=no,scrollbars=yes,resizable=yes";
+    $info->onclick = "window.open('$fullurl', '', '$wh'); return false;";
 
-    $display = html5player_get_final_display_type($html5player);
-
-    if ($display == RESOURCELIB_DISPLAY_POPUP) {
-        $fullurl = "$CFG->wwwroot/mod/html5player/view.php?id=$coursemodule->id&amp;redirect=1";
-        $options = empty($html5player->displayoptions) ? array() : unserialize($html5player->displayoptions);
-        $width  = empty($options['popupwidth'])  ? 620 : $options['popupwidth'];
-        $height = empty($options['popupheight']) ? 450 : $options['popupheight'];
-        $wh = "width=$width,height=$height,toolbar=no,location=no,menubar=no,copyhistory=no,status=no,directories=no,scrollbars=yes,resizable=yes";
-        $info->onclick = "window.open('$fullurl', '', '$wh'); return false;";
-
-    } else if ($display == RESOURCELIB_DISPLAY_NEW) {
-        $fullurl = "$CFG->wwwroot/mod/html5player/view.php?id=$coursemodule->id&amp;redirect=1";
-        $info->onclick = "window.open('$fullurl'); return false;";
-
-    }
-
-    // If any optional extra details are turned on, store in custom data,
-    // add some file details as well to be used later by html5player_get_optional_details() without retriving.
-    // Do not store filedetails if this is a reference - they will still need to be retrieved every time.
-    if (($filedetails = html5player_get_file_details($html5player, $coursemodule)) && empty($filedetails['isref'])) {
-        $displayoptions = @unserialize($html5player->displayoptions);
-        $displayoptions['filedetails'] = $filedetails;
-        $info->customdata['displayoptions'] = serialize($displayoptions);
-    } else {
-        $info->customdata['displayoptions'] = $html5player->displayoptions;
-    }
-    $info->customdata['display'] = $display;
+    return $info;
 
     return $info;
 }
 
-/**
- * Called when viewing course page. Shows extra details after the link if
- * enabled.
- *
- * @param cm_info $cm Course module information
- */
-function html5player_cm_info_view(cm_info $cm) {
-//    global $CFG;
-//    require_once($CFG->dirroot . '/mod/html5player/locallib.php');
-//
-//    $html5player = (object) ['displayoptions' => $cm->customdata['displayoptions']];
-//    $details = html5player_get_optional_details($html5player, $cm);
-//    if ($details) {
-//        $cm->set_after_link(' ' . html_writer::tag('span', $details,
-//                array('class' => 'html5playerlinkdetails')));
-//    }
-}
 
 /**
  * Lists all browsable file areas
@@ -246,6 +200,26 @@ function html5player_get_file_areas($course, $cm, $context) {
     $areas['content'] = get_string('html5playercontent', 'html5player');
     return $areas;
 }
+
+/**
+ * Called when viewing course html5player. Shows extra details after the link if
+ * enabled.
+ *
+ * @param cm_info $cm Course module information
+ */
+function html5player_cm_info_view(cm_info $cm) {
+//    global $CFG;
+//    require_once($CFG->dirroot . '/mod/html5player/locallib.php');
+//
+//    $html5player = (object) ['displayoptions' => $cm->customdata['displayoptions']];
+//    $details = html5player_get_optional_details($html5player, $cm);
+//    if ($details) {
+//        $cm->set_after_link(' ' . html_writer::tag('span', $details,
+//                array('class' => 'html5playerlinkdetails')));
+//    }
+}
+
+
 
 /**
  * File browsing support for html5player module content area.
@@ -327,58 +301,62 @@ function html5player_pluginfile($course, $cm, $context, $filearea, $args, $force
         return false;
     }
 
-    array_shift($args); // ignore revision - designed to prevent caching problems only
+    // $arg could be revision number or index.html
+    $arg = array_shift($args);
+    if ($arg == 'index.html' || $arg == 'index.htm') {
+        // serve html5player content
+        $filename = $arg;
 
-    $fs = get_file_storage();
-    $relativepath = implode('/', $args);
-    $fullpath = rtrim("/$context->id/mod_html5player/$filearea/0/$relativepath", '/');
-    do {
-        if (!$file = $fs->get_file_by_hash(sha1($fullpath))) {
-            if ($fs->get_file_by_hash(sha1("$fullpath/."))) {
-                if ($file = $fs->get_file_by_hash(sha1("$fullpath/index.htm"))) {
-                    break;
-                }
-                if ($file = $fs->get_file_by_hash(sha1("$fullpath/index.html"))) {
-                    break;
-                }
-                if ($file = $fs->get_file_by_hash(sha1("$fullpath/Default.htm"))) {
-                    break;
-                }
-            }
-            $html5player = $DB->get_record('html5player', array('id'=>$cm->instance), 'id, legacyfiles', MUST_EXIST);
-            if ($html5player->legacyfiles != RESOURCELIB_LEGACYFILES_ACTIVE) {
+        if (!$page = $DB->get_record('html5player', array('id'=>$cm->instance), '*', MUST_EXIST)) {
+            return false;
+        }
+
+        // We need to rewrite the pluginfile URLs so the media filters can work.
+        $content = file_rewrite_pluginfile_urls($page->content, 'webservice/pluginfile.php', $context->id, 'mod_html5player', 'content',
+            $page->revision);
+        $formatoptions = new stdClass;
+        $formatoptions->noclean = true;
+        $formatoptions->overflowdiv = true;
+        $formatoptions->context = $context;
+        $content = format_text($content, $page->contentformat, $formatoptions);
+
+        // Remove @@PLUGINFILE@@/.
+        $options = array('reverse' => true);
+        $content = file_rewrite_pluginfile_urls($content, 'webservice/pluginfile.php', $context->id, 'mod_html5player', 'content',
+            $page->revision, $options);
+        $content = str_replace('@@PLUGINFILE@@/', '', $content);
+
+        send_file($content, $filename, 0, 0, true, true);
+    } else {
+        $fs = get_file_storage();
+        $relativepath = implode('/', $args);
+        $fullpath = "/$context->id/mod_html5player/$filearea/0/$relativepath";
+        if (!$file = $fs->get_file_by_hash(sha1($fullpath)) or $file->is_directory()) {
+            $page = $DB->get_record('html5player', array('id'=>$cm->instance), 'id, legacyfiles', MUST_EXIST);
+            if ($page->legacyfiles != RESOURCELIB_LEGACYFILES_ACTIVE) {
                 return false;
             }
             if (!$file = resourcelib_try_file_migration('/'.$relativepath, $cm->id, $cm->course, 'mod_html5player', 'content', 0)) {
                 return false;
             }
-            // file migrate - update flag
-            $html5player->legacyfileslast = time();
-            $DB->update_record('html5player', $html5player);
+            //file migrate - update flag
+            $page->legacyfileslast = time();
+            $DB->update_record('html5player', $page);
         }
-    } while (false);
 
-    // should we apply filters?
-    $mimetype = $file->get_mimetype();
-    if ($mimetype === 'text/html' or $mimetype === 'text/plain' or $mimetype === 'application/xhtml+xml') {
-        $filter = $DB->get_field('html5player', 'filterfiles', array('id'=>$cm->instance));
-        $CFG->embeddedsoforcelinktarget = true;
-    } else {
-        $filter = 0;
+        // finally send the file
+        send_stored_file($file, null, 0, $forcedownload, $options);
     }
-
-    // finally send the file
-    send_stored_file($file, null, $filter, $forcedownload, $options);
 }
 
 /**
- * Return a list of page types
- * @param string $pagetype current page type
+ * Return a list of html5player types
+ * @param string $html5playertype current html5player type
  * @param stdClass $parentcontext Block's parent context
  * @param stdClass $currentcontext Current context of block
  */
-function html5player_page_type_list($pagetype, $parentcontext, $currentcontext) {
-    $module_pagetype = array('mod-html5player-*'=>get_string('page-mod-html5player-x', 'html5player'));
+function html5player_page_type_list($html5playertype, $parentcontext, $currentcontext) {
+    $module_pagetype = array('mod-html5player-*'=>get_string('html5player-mod-html5player-x', 'html5player'));
     return $module_pagetype;
 }
 
@@ -425,8 +403,9 @@ function html5player_export_contents($cm, $baseurl) {
  * @return array containing details of the files / types the mod can handle
  */
 function html5player_dndupload_register() {
-    return array('files' => array(
-        array('extension' => '*', 'message' => get_string('dnduploadhtml5player', 'mod_html5player'))
+    return array('types' => array(
+        array('identifier' => 'text/html', 'message' => get_string('createpage', 'html5player')),
+        array('identifier' => 'text', 'message' => get_string('createpage', 'html5player'))
     ));
 }
 
@@ -452,7 +431,7 @@ function html5player_dndupload_handle($uploadinfo) {
     $data->coursemodule = $uploadinfo->coursemodule;
 
     // Set the display options to the site defaults.
-    $config = get_config('page');
+    $config = get_config('html5player');
     $data->display = $config->display;
     $data->popupheight = $config->popupheight;
     $data->popupwidth = $config->popupwidth;
@@ -516,7 +495,6 @@ function html5player_check_updates_since(cm_info $cm, $from, $filter = array()) 
  */
 function mod_html5player_core_calendar_provide_event_action(calendar_event $event,
                                                           \core_calendar\action_factory $factory, $userid = 0) {
-
     global $USER;
 
     if (empty($userid)) {
