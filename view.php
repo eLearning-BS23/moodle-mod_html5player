@@ -42,15 +42,22 @@ if ($id) {
     throw new Exception('You must specify a course_module ID or an instance ID');
 }
 
-require_course_login($course->id, false, $cm);
+//require_course_login($course->id, false, $cm);
+//
+//$event = \mod_html5player\event\course_module_viewed::create(array(
+//    'objectid' => $PAGE->cm->instance,
+//    'context' => $PAGE->context,
+//));
+//$event->add_record_snapshot('course', $PAGE->course);
+//$event->add_record_snapshot($PAGE->cm->modname, $html5player);
+//$event->trigger();
 
-$event = \mod_html5player\event\course_module_viewed::create(array(
-    'objectid' => $PAGE->cm->instance,
-    'context' => $PAGE->context,
-));
-$event->add_record_snapshot('course', $PAGE->course);
-$event->add_record_snapshot($PAGE->cm->modname, $html5player);
-$event->trigger();
+require_course_login($course, true, $cm);
+$context = context_module::instance($cm->id);
+require_capability('mod/html5player:view', $context);
+
+// Completion and trigger events.
+html5player_view($html5player, $course, $cm, $context);
 
 // Print the page header.
 

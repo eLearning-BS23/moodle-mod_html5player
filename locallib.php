@@ -254,11 +254,13 @@ function html5player_get_unit() {
 }
 
 function html5player_generate_code($html5player) {
+    global $PAGE;
     $units = html5player_get_unit();
     echo html_writer::tag('h1', $html5player->name, ['class' => 'mb-5']);
     ?>
     <div style="max-width: <?= $html5player->width . $units[$html5player->units] ?>; margin: auto;">
         <video-js
+                id="brightcove-player-<?php echo $html5player->player_id ?>"
                 data-account="<?php echo $html5player->account_id ?>"
                 data-player="<?php echo $html5player->player_id ?>"
                 data-embed="default"
@@ -266,10 +268,18 @@ function html5player_generate_code($html5player) {
                 data-video-id="<?php echo $html5player->video_id ?>"
                 data-playlist-id="<?php echo $html5player->video_id ? "" : $html5player->playlist_id ?>"
                 data-application-id=""
-                class="vjs-big-play-centered vjs-fluid">
+                class="vjs-big-play-centered vjs-fluid"
+                controls
+                >
         </video-js>
-        <script src="https://players.brightcove.net/<?php echo $html5player->account_id ?>/<?php echo $html5player->player_id ?>_default/index.min.js"></script>
+<!--        <script src="https://players.brightcove.net/--><?php //echo $html5player->account_id ?><!--/--><?php //echo $html5player->player_id ?><!--_default/index.min.js"></script>-->
 
     </div>
     <?php
+    $PAGE->requires->js_call_amd('mod_html5player/brightcove','init'
+        ,array(
+            'accountid' => $html5player->account_id,
+            'playerid' =>$html5player->player_id,
+        )
+    );
 }
