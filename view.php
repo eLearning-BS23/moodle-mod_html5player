@@ -67,11 +67,5 @@ $PAGE->set_heading(format_string($course->fullname));
 $PAGE->set_cacheable(false);
 $context = context_course::instance($course->id);
 
-$units = [
-    1 => get_string('pixel','mod_html5player'),
-    2 => get_string('em','mod_html5player'),
-    3 => get_string('percentage','mod_html5player'),
-];
-
 html5player_display_embed_video($html5player,$cm, $course);
 

@@ -244,7 +244,10 @@ function html5player_is_favourite() {
 
 }
 
-
+/**
+ * @return array
+ * @throws coding_exception
+ */
 function html5player_get_unit() {
     return[
         1 => get_string('pixel','mod_html5player'),
@@ -253,6 +256,10 @@ function html5player_get_unit() {
     ];
 }
 
+/**
+ * @param $html5player
+ * @throws coding_exception
+ */
 function html5player_generate_code($html5player) {
     global $PAGE;
     $units = html5player_get_unit();
@@ -272,8 +279,6 @@ function html5player_generate_code($html5player) {
                 controls
                 >
         </video-js>
-<!--        <script src="https://players.brightcove.net/--><?php //echo $html5player->account_id ?><!--/--><?php //echo $html5player->player_id ?><!--_default/index.min.js"></script>-->
-
     </div>
     <?php
     $PAGE->requires->js_call_amd('mod_html5player/brightcove','init'
