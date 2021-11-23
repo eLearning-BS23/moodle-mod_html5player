@@ -25,6 +25,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 const HTML5_TABLE_NAME = 'html5player';
+
+const HTML5_TRACKING_TABLE_NAME = 'html5completiontracking';
 /**
  * Returns the information on whether the module supports a feature
  *
@@ -442,17 +444,19 @@ function html5player_dndupload_handle($uploadinfo) {
 
     return html5player_add_instance($data, null);
 }
+
 /**
  * Mark the activity completed (if required) and trigger the course_module_viewed event.
  *
- * @param  stdClass $html5player   html5player object
- * @param  stdClass $course     course object
- * @param  stdClass $cm         course module object
- * @param  stdClass $context    context object
+ * @param stdClass $html5player html5player object
+ * @param stdClass $course course object
+ * @param stdClass $cm course module object
+ * @param stdClass $context context object
+ * @throws dml_exception
  * @since Moodle 3.0
  */
 function html5player_view($html5player, $course, $cm, $context) {
-
+    global $DB, $USER;
     // Trigger course_module_viewed event.
     $params = array(
         'context' => $context,
@@ -465,9 +469,8 @@ function html5player_view($html5player, $course, $cm, $context) {
     $event->add_record_snapshot('html5player', $html5player);
     $event->trigger();
 
-    // Completion.
-    $completion = new completion_info($course);
-    $completion->set_module_viewed($cm);
+    html5player_set_module_viewed($course, $cm);
+
 }
 
 /**

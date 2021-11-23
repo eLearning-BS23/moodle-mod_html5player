@@ -261,30 +261,85 @@ function html5player_get_unit() {
  * @throws coding_exception
  */
 function html5player_generate_code($html5player) {
-    global $PAGE;
-    $units = html5player_get_unit();
+    global $PAGE, $OUTPUT;
     echo html_writer::tag('h1', $html5player->name, ['class' => 'mb-5']);
-    ?>
-    <div style="max-width: <?= $html5player->width . $units[$html5player->units] ?>; margin: auto;">
-        <video-js
-                id="brightcove-player-<?php echo $html5player->player_id ?>"
-                data-account="<?php echo $html5player->account_id ?>"
-                data-player="<?php echo $html5player->player_id ?>"
-                data-embed="default"
-                controls=""
-                data-video-id="<?php echo $html5player->video_id ?>"
-                data-playlist-id="<?php echo $html5player->video_id ? "" : $html5player->playlist_id ?>"
-                data-application-id=""
-                class="vjs-big-play-centered vjs-fluid"
-                controls
-                >
-        </video-js>
-    </div>
-    <?php
-    $PAGE->requires->js_call_amd('mod_html5player/brightcove','init'
-        ,array(
-            'accountid' => $html5player->account_id,
-            'playerid' =>$html5player->player_id,
-        )
+    echo $OUTPUT->render_from_template('mod_html5player/brightcove/video-renderer',$html5player);
+}
+
+/**
+ * @param $course
+ * @param $cm
+ * @throws dml_exception
+ */
+function html5player_set_module_viewed($course, $cm){
+    global $DB, $USER;
+    $context = context_course::instance($course->id);
+    $is_enrolled =  is_enrolled($context, $USER->id, '', true);
+
+    if ($is_enrolled){
+
+        $tracking_data = html5player_get_module_progress($course->id,$cm->id,$USER->id);
+
+        // Completion.
+        if ( $tracking_data && $tracking_data->progress >= 100) {
+            $completion = new completion_info($course);
+            $completion->set_module_viewed($cm);
+        }
+    }
+}
+
+/**
+ * @param int $courseid
+ * @param int $moduleid
+ * @param int $userid
+ * @return false|mixed|stdClass
+ * @throws dml_exception
+ */
+function html5player_get_module_progress(int $courseid, int $moduleid, int $userid) {
+    global $DB;
+
+    $conditions = array(
+        'course' => $courseid,
+        'cm' => $moduleid,
+        'user' => $userid,
     );
+
+    return $DB->get_record(HTML5_TRACKING_TABLE_NAME,$conditions);
+}
+
+
+/**
+ * @param int $course
+ * @param int $module
+ * @param int $userid
+ * @param float $progress
+ * @return bool
+ * @throws dml_exception
+ */
+function html5player_set_module_progress(int $course, int $module, int $userid, float $progress) {
+    global $DB;
+
+    $conditions = array(
+        'course' => $course,
+        'cm' => $module,
+        'user' => $userid,
+    );
+
+    $existing_record = $DB->get_record(HTML5_TRACKING_TABLE_NAME,$conditions);
+
+    if ($existing_record){
+        $existing_record->progress = $progress;
+        $existing_record->timemodified = time();
+        return $DB->update_record(HTML5_TRACKING_TABLE_NAME, $existing_record);
+    }
+
+    $progressions = new stdClass();
+    $progressions->course = $course;
+    $progressions->cm = $module;
+    $progressions->user = $userid;
+    $progressions->progress = $progress;
+    $progressions->timecreated = time();
+    $progressions->timemodified = time();
+
+    return $DB->insert_record(HTML5_TRACKING_TABLE_NAME,$progressions,false);
 }
