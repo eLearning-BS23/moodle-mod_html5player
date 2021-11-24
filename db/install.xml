@@ -15,7 +15,7 @@
                 <FIELD NAME="account_id" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Account ID"/>
                 <FIELD NAME="player_id" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="Player ID"/>
                 <FIELD NAME="video_type" TYPE="int" LENGTH="2" NOTNULL="false" SEQUENCE="false" COMMENT="Video Type, 1=single video, 2 = playlist"/>
-                <FIELD NAME="video_id" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Video ID"/>
+                <FIELD NAME="video_id" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Video ID"/>
                 <FIELD NAME="completed" TYPE="int"  UNSIGNED="true" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
                 <FIELD NAME="sizing" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Sizing"/>
                 <FIELD NAME="aspect_ratio" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="Aspect Ratio"/>

@@ -13,6 +13,11 @@ define(['jquery'], function ($) {
         player.on('loadedmetadata', function(e){
             console.log(e);
             console.log(player.duration());
+            const playListsItems = player.playlist();
+            playListsItems.forEach( (item, index  ) => {
+                console.log(item);
+                console.log(index);
+            });
         });
     }
 
@@ -22,6 +27,7 @@ define(['jquery'], function ($) {
         loadBrightCoveJs(accountId, playerId);
 
         require(['bc'], function() {
+            console.info(`Brightcove player js loaded...`);
             const myPlayer = videojs.getPlayer(`brightcove-player-${playerId}`);
             html5playerOnLoadMetaData(myPlayer);
             // myPlayer.on('playstart')
