@@ -314,6 +314,49 @@ function html5player_get_module_progress(int $courseid, int $moduleid, int $user
 
 
 /**
+ * @throws Throwable
+ * @throws coding_exception
+ * @throws dml_exception
+ * @throws dml_transaction_exception
+ */
+function html5player_add_videos(int $html5playerid, array $videoids) {
+    global $DB;
+    $html5player = $DB->get_record(HTML5_TABLE_NAME, array('id' => $html5playerid), '*', MUST_EXIST);
+
+    $transaction = $DB->start_delegated_transaction();
+
+    try {
+        foreach ($videoids as $videoid => $duration):
+            html5player_add_video($html5player,$videoid,$duration);
+        endforeach;
+        $DB->commit_delegated_transaction($transaction);
+
+    }catch (dml_exception $dml_exception){
+        $DB->rollback_delegated_transaction($transaction);
+        throw $dml_exception;
+    }
+
+}
+
+
+/**
+ * @throws dml_exception
+ */
+function html5player_add_video($html5player, string $video, float $duration) {
+    global $DB;
+
+    $html5video = new stdClass();
+    $html5video->html5player = $html5player->id;
+    $html5video->video_id = $video;
+    $html5video->duration = $duration;
+    $html5video->timecreated = time();
+    $html5video->timemodified = time();
+
+    return $DB->insert_record(HTML5_TRACKING_TABLE_NAME,$html5video,true);
+}
+
+
+/**
  * @param int $course
  * @param int $module
  * @param int $userid

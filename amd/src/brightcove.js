@@ -11,8 +11,7 @@ define(['jquery'], function ($) {
     // On Load meta data event and listener
     const html5playerOnLoadMetaData = (player) => {
         player.on('loadedmetadata', function(e){
-            console.log(e);
-            console.log(player.duration());
+            // console.log(player.duration());
             const playListsItems = player.playlist();
             playListsItems.forEach( (item, index  ) => {
                 console.log(item);
