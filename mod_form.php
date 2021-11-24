@@ -85,20 +85,14 @@ class mod_html5player_mod_form extends moodleform_mod {
         $videotype = get_config('html5player', 'video_type');
         $mform->setDefault('video_type', $videotype);
 
-        $mform->hideIf('video_id', 'video_type', 'eq', '2');
-        $mform->hideIf('playlist_id', 'video_type', 'eq','1');
-
         // Video ID.
         $mform->addElement('text', 'video_id', get_string('video_id', 'html5player'));
         $mform->setType('video_id', PARAM_TEXT);
         $mform->addHelpButton('video_id', 'video_id', 'html5player');
-        // $mform->addRule('video_id', null, 'required', null, 'client');
+         $mform->addRule('video_id', null, 'required', null, 'client');
 
-        // Playlist ID.
-        $mform->addElement('text', 'playlist_id', get_string('playlist_id', 'html5player'));
-        $mform->setType('playlist_id', PARAM_TEXT);
-        $mform->addHelpButton('playlist_id', 'playlist_id', 'html5player');
-        // $mform->addRule('playlist_id', null, 'required', null, 'client');
+
+        $mform->addElement('header', 'videocontent', get_string('header:videoappearance', 'html5player'));
 
         // Sizing.
         $sizingoptions = [

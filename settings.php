@@ -61,7 +61,7 @@ if ($ADMIN->fulltree) {
     ];
     $settings->add(new admin_setting_configselect('html5player/aspect_ratio',
         get_string('aspect_ratio', 'mod_html5player'),
-        get_string('aspect_ratio_help', 'mod_html5player'), '7', $aspectratios));
+        get_string('aspect_ratio_help', 'mod_html5player'), '4', $aspectratios));
 
     $units = [
         1 => get_string('pixel','mod_html5player'),
@@ -70,13 +70,13 @@ if ($ADMIN->fulltree) {
     ];
     $settings->add(new admin_setting_configselect('html5player/units',
         get_string('units', 'mod_html5player'),
-        get_string('units_help', 'mod_html5player'), '1', $units));
+        get_string('units_help', 'mod_html5player'), '3', $units));
 
     $settings->add(new admin_setting_configtext('html5player/width',
         get_string('width', 'mod_html5player'),
-        get_string('width_help', 'mod_html5player'), '', PARAM_TEXT, 50));
+        get_string('width_help', 'mod_html5player'), '100', PARAM_TEXT, 50));
 
     $settings->add(new admin_setting_configtext('html5player/height',
         get_string('height', 'mod_html5player'),
-        get_string('height_help', 'mod_html5player'), '', PARAM_TEXT, 50));
+        get_string('height_help', 'mod_html5player'), '100', PARAM_TEXT, 50));
 }

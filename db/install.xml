@@ -14,9 +14,9 @@
                 <FIELD NAME="meta_info" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" COMMENT="Meta info"/>
                 <FIELD NAME="account_id" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Account ID"/>
                 <FIELD NAME="player_id" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Player ID"/>
-                <FIELD NAME="video_type" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Video Type"/>
-                <FIELD NAME="video_id" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Video ID"/>
-                <FIELD NAME="playlist_id" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Video ID"/>
+                <FIELD NAME="video_type" TYPE="int" LENGTH="2" NOTNULL="false" SEQUENCE="false" COMMENT="Video Type, 1=single video, 2 = playlist"/>
+                <FIELD NAME="video_id" TYPE="int" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Video ID"/>
+                <FIELD NAME="completed" TYPE="int"  UNSIGNED="true" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
                 <FIELD NAME="sizing" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Sizing"/>
                 <FIELD NAME="aspect_ratio" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Aspect Ratio"/>
                 <FIELD NAME="units" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Units"/>
@@ -35,22 +35,31 @@
                 <INDEX NAME="course" UNIQUE="false" FIELDS="course"/>
             </INDEXES>
         </TABLE>
-        <TABLE NAME="html5completiontracking" COMMENT="html5player Video Progress Tracking">
+        <TABLE NAME="html5videos" COMMENT="html5player video/player video list">
             <FIELDS>
                 <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-                <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-                <FIELD NAME="cm" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-                <FIELD NAME="user" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-                <FIELD NAME="progress" TYPE="float" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+                <FIELD NAME="html5player" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+                <FIELD NAME="video_id" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Video ID"/>
+                <FIELD NAME="duration" TYPE="float" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Video duration"/>
                 <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" />
                 <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
             </FIELDS>
             <KEYS>
                 <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
             </KEYS>
-            <INDEXES>
-                <INDEX NAME="course" UNIQUE="false" FIELDS="course"/>
-            </INDEXES>
+        </TABLE>
+        <TABLE NAME="html5individualtracking" COMMENT="Video Progress for individual user">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+                <FIELD NAME="html5videos" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="html5player id"/>
+                <FIELD NAME="user" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+                <FIELD NAME="progress" TYPE="float" LENGTH="3" NOTNULL="false" SEQUENCE="false" COMMENT="Video progress"/>
+                <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" />
+                <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+            </KEYS>
         </TABLE>
     </TABLES>
 </XMLDB>
