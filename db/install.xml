@@ -12,16 +12,16 @@
                 <FIELD NAME="intro" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
                 <FIELD NAME="introformat" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
                 <FIELD NAME="meta_info" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" COMMENT="Meta info"/>
-                <FIELD NAME="account_id" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Account ID"/>
-                <FIELD NAME="player_id" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Player ID"/>
+                <FIELD NAME="account_id" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Account ID"/>
+                <FIELD NAME="player_id" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="Player ID"/>
                 <FIELD NAME="video_type" TYPE="int" LENGTH="2" NOTNULL="false" SEQUENCE="false" COMMENT="Video Type, 1=single video, 2 = playlist"/>
-                <FIELD NAME="video_id" TYPE="int" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Video ID"/>
+                <FIELD NAME="video_id" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Video ID"/>
                 <FIELD NAME="completed" TYPE="int"  UNSIGNED="true" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
                 <FIELD NAME="sizing" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Sizing"/>
-                <FIELD NAME="aspect_ratio" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Aspect Ratio"/>
-                <FIELD NAME="units" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Units"/>
-                <FIELD NAME="width" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Video Width"/>
-                <FIELD NAME="height" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Video Height"/>
+                <FIELD NAME="aspect_ratio" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="Aspect Ratio"/>
+                <FIELD NAME="units" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="Units"/>
+                <FIELD NAME="width" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="Video Width"/>
+                <FIELD NAME="height" TYPE="char" LENGTH="25" NOTNULL="false" SEQUENCE="false" COMMENT="Video Height"/>
                 <FIELD NAME="display" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
                 <FIELD NAME="displayoptions" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
                 <FIELD NAME="tobemigrated" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
@@ -48,7 +48,7 @@
                 <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
             </KEYS>
         </TABLE>
-        <TABLE NAME="html5individualtracking" COMMENT="Video Progress for individual user">
+        <TABLE NAME="html5tracking" COMMENT="Video Progress for individual user">
             <FIELDS>
                 <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
                 <FIELD NAME="html5videos" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="html5player id"/>
