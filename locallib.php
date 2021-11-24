@@ -248,12 +248,18 @@ function html5player_is_favourite() {
  * @return array
  * @throws coding_exception
  */
-function html5player_get_unit() {
-    return[
+function html5player_get_unit($key) {
+
+    $units = [
         1 => get_string('pixel','mod_html5player'),
         2 => get_string('em','mod_html5player'),
         3 => get_string('percentage','mod_html5player'),
     ];
+
+    if ($key){
+        return $units[$key];
+    }
+    return $units;
 }
 
 /**
@@ -263,6 +269,11 @@ function html5player_get_unit() {
 function html5player_generate_code($html5player) {
     global $PAGE, $OUTPUT;
     echo html_writer::tag('h1', $html5player->name, ['class' => 'mb-5']);
+
+    if ($html5player->video_type == 2) {
+        $html5player->playlist_id = $html5player->video_id;
+    }
+    $html5player->unitstxt = html5player_get_unit($html5player->units);
     echo $OUTPUT->render_from_template('mod_html5player/brightcove/video-renderer',$html5player);
 }
 
@@ -271,20 +282,14 @@ function html5player_generate_code($html5player) {
  * @param $cm
  * @throws dml_exception
  */
-function html5player_set_module_viewed($course, $cm){
-    global $DB, $USER;
+function html5player_set_module_viewed($html5player, $course, $cm){
+    global $USER;
     $context = context_course::instance($course->id);
     $is_enrolled =  is_enrolled($context, $USER->id, '', true);
 
-    if ($is_enrolled){
-
-        $tracking_data = html5player_get_module_progress($course->id,$cm->id,$USER->id);
-
-        // Completion.
-        if ( $tracking_data && $tracking_data->progress >= 100) {
-            $completion = new completion_info($course);
-            $completion->set_module_viewed($cm);
-        }
+    if ($is_enrolled && $html5player->completed){
+        $completion = new completion_info($course);
+        $completion->set_module_viewed($cm);
     }
 }
 

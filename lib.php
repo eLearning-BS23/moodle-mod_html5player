@@ -26,7 +26,7 @@ defined('MOODLE_INTERNAL') || die();
 
 const HTML5_TABLE_NAME = 'html5player';
 
-const HTML5_TRACKING_TABLE_NAME = 'html5completiontracking';
+const HTML5_TRACKING_TABLE_NAME = 'html5videos';
 /**
  * Returns the information on whether the module supports a feature
  *
@@ -159,7 +159,7 @@ function html5player_get_coursemodule_info($coursemodule) {
     $context = context_module::instance($coursemodule->id);
 
     if (!$html5player = $DB->get_record('html5player', array('id'=>$coursemodule->instance),
-        'id, name, display, displayoptions, tobemigrated, intro, introformat,meta_info, account_id, player_id, video_type, video_id,playlist_id,sizing,aspect_ratio,units,width,height')) {
+        'id, name, display, displayoptions, tobemigrated, intro, introformat,meta_info, account_id, player_id, video_type, video_id,sizing,aspect_ratio,units,width,height')) {
         return NULL;
     }
 
@@ -469,7 +469,7 @@ function html5player_view($html5player, $course, $cm, $context) {
     $event->add_record_snapshot('html5player', $html5player);
     $event->trigger();
 
-    html5player_set_module_viewed($course, $cm);
+    html5player_set_module_viewed($html5player, $course, $cm);
 
 }
 
