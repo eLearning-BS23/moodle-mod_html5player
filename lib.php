@@ -26,7 +26,7 @@ defined('MOODLE_INTERNAL') || die();
 
 const HTML5_TABLE_NAME = 'html5player';
 
-const HTML5_TRACKING_TABLE_NAME = 'html5videos';
+const HTML5PLYAER_VIDEO_TABLE_NAME = 'html5videos';
 /**
  * Returns the information on whether the module supports a feature
  *

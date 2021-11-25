@@ -309,7 +309,7 @@ function html5player_get_module_progress(int $courseid, int $moduleid, int $user
         'user' => $userid,
     );
 
-    return $DB->get_record(HTML5_TRACKING_TABLE_NAME,$conditions);
+    return $DB->get_record(HTML5PLYAER_VIDEO_TABLE_NAME,$conditions);
 }
 
 
@@ -326,14 +326,14 @@ function html5player_add_videos(int $html5playerid, array $videoids) {
     $transaction = $DB->start_delegated_transaction();
 
     try {
-        foreach ($videoids as $videoid => $duration):
-            html5player_add_video($html5player,$videoid,$duration);
+        foreach ($videoids as $video):
+            html5player_add_video($html5player,$video);
         endforeach;
         $DB->commit_delegated_transaction($transaction);
 
-    }catch (dml_exception $dml_exception){
-        $DB->rollback_delegated_transaction($transaction);
-        throw $dml_exception;
+    }catch (dml_exception $exception){
+        $DB->rollback_delegated_transaction($transaction, $exception);
+        throw $exception;
     }
 
 }
@@ -342,17 +342,18 @@ function html5player_add_videos(int $html5playerid, array $videoids) {
 /**
  * @throws dml_exception
  */
-function html5player_add_video($html5player, string $video, float $duration) {
+function html5player_add_video($html5player, stdClass $video) {
     global $DB;
 
     $html5video = new stdClass();
     $html5video->html5player = $html5player->id;
-    $html5video->video_id = $video;
-    $html5video->duration = $duration;
+    $html5video->video_id = $video->id;
+    $html5video->duration = $video->duration;
+    $html5video->poster = $video->poster;
     $html5video->timecreated = time();
     $html5video->timemodified = time();
 
-    return $DB->insert_record(HTML5_TRACKING_TABLE_NAME,$html5video,true);
+    return $DB->insert_record(HTML5PLYAER_VIDEO_TABLE_NAME,$html5video);
 }
 
 
@@ -373,12 +374,12 @@ function html5player_set_module_progress(int $course, int $module, int $userid, 
         'user' => $userid,
     );
 
-    $existing_record = $DB->get_record(HTML5_TRACKING_TABLE_NAME,$conditions);
+    $existing_record = $DB->get_record(HTML5PLYAER_VIDEO_TABLE_NAME,$conditions);
 
     if ($existing_record){
         $existing_record->progress = $progress;
         $existing_record->timemodified = time();
-        return $DB->update_record(HTML5_TRACKING_TABLE_NAME, $existing_record);
+        return $DB->update_record(HTML5PLYAER_VIDEO_TABLE_NAME, $existing_record);
     }
 
     $progressions = new stdClass();
@@ -389,5 +390,5 @@ function html5player_set_module_progress(int $course, int $module, int $userid, 
     $progressions->timecreated = time();
     $progressions->timemodified = time();
 
-    return $DB->insert_record(HTML5_TRACKING_TABLE_NAME,$progressions,false);
+    return $DB->insert_record(HTML5PLYAER_VIDEO_TABLE_NAME,$progressions,false);
 }
