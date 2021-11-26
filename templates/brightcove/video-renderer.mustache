@@ -23,7 +23,9 @@
             "player_id": 'default',
             "account_id": null',
             "playlist_id": null,
-            "video_id": null'
+            "video_id": null',
+            "cmid": null',
+            "courseid": null',
     }
 }}
 <div style="max-width: {{width}}{{unitstxt}}; margin: auto;">
@@ -57,7 +59,7 @@
 </div>
 {{#js}}
     M.util.js_pending('mod_html5player/brightcove');
-    require(['mod_html5player/brightcove'], function(amd) {amd.init('{{account_id}}', '{{player_id}}');
+    require(['mod_html5player/brightcove'], function(amd) {amd.init('{{course}}','{{cmid}}','{{account_id}}', '{{player_id}}','{{video_id}}');
         M.util.js_complete('mod_html5player/brightcove');
     });
 {{/js}}

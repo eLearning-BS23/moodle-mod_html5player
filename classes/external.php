@@ -58,13 +58,40 @@ class mod_html5player_external extends external_api
             'id' => $id,
             'videoid' => $videoid,
             'userid' => $userid ?? $USER->id,
-            'progress' => $progress,
+            'progress' => $progress ? $progress * 1000 : 0,
         );
         $params = self::validate_parameters(self::html5player_set_progress_parameters(), $params);
 
         $cm = get_coursemodule_from_id('html5player', $id, 0, false, MUST_EXIST);
-        $course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
         $html5player = $DB->get_record('html5player', array('id' => $cm->instance), '*', MUST_EXIST);
+
+        $video = $DB->get_record(HTML5PLYAER_VIDEO_TABLE_NAME, array('html5player' => $html5player->id,
+            'video_id' => $videoid,), '*',MUST_EXIST);
+
+        $tracking = $DB->get_record(HTML5PLYAER_VIDEO_TRACKING_TABLE_NAME,array('html5player' => $html5player->id,
+            'html5videoid' => $video->id,
+            'user' => $params['userid'],
+        ),'*',IGNORE_MISSING);
+
+        if (empty($tracking)){
+            $tracking =new stdClass();
+            $tracking->html5player = $html5player->id;
+            $tracking->html5videoid = $video->id;
+            $tracking->user = $params['userid'];
+            $tracking->progress = $params['progress'];
+            $tracking->timecreated = time();
+            $tracking->timemodified = time();
+
+            $DB->insert_record(HTML5PLYAER_VIDEO_TRACKING_TABLE_NAME, $tracking);
+        }else{
+            $tracking->progress = $params['progress'];
+            $tracking->timemodified = time();
+            $DB->update_record(HTML5PLYAER_VIDEO_TRACKING_TABLE_NAME, $tracking);
+        }
+        return array(
+            'status' => true,
+            'warnings' => $warnings
+        );
     }
 
     public static function html5player_set_progress_returns()

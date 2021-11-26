@@ -7,7 +7,7 @@
         <TABLE NAME="html5player" COMMENT="each record is one html5player resource">
             <FIELDS>
                 <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-                <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+                <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true"  SEQUENCE="false"/>
                 <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
                 <FIELD NAME="intro" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
                 <FIELD NAME="introformat" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
@@ -39,7 +39,7 @@
             <FIELDS>
                 <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
                 <FIELD NAME="html5player" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Primary key of html5player table"/>
-                <FIELD NAME="video_id" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Video ID"/>
+                <FIELD NAME="video_id" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Video ID" />
                 <FIELD NAME="poster" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Video poster"/>
                 <FIELD NAME="thumbnail" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Video thumbnail"/>
                 <FIELD NAME="duration" TYPE="float" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Video duration in milliseconds"/>
@@ -56,7 +56,7 @@
                 <FIELD NAME="html5player" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Primary key of html5player table"/>
                 <FIELD NAME="html5videoid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Primary key of html5videos table"/>
                 <FIELD NAME="user" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-                <FIELD NAME="progress" TYPE="float" LENGTH="3" NOTNULL="false" SEQUENCE="false" COMMENT="Video progress"/>
+                <FIELD NAME="progress" TYPE="float" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Video progress"/>
                 <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" />
                 <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
             </FIELDS>

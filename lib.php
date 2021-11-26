@@ -156,15 +156,14 @@ function html5player_update_instance($data, $mform) {
             // TODO: Retrieve video playlist items and update to html5videos table.
         }else{
             $videodetails = html5player_get_video_description($data->account_id,$data->video_id);
-
-            html5player_add_video($data->instance, $videodetails);
+            $html5player = $DB->get_record(HTML5PLYAER_VIDEO_TABLE_NAME,array('html5player' => $data->instance));
+            html5player_update_video($html5player, $videodetails);
         }
         $DB->commit_delegated_transaction($transection);
 
     }catch (Exception $exception){
         $DB->rollback_delegated_transaction($transection, $exception);
         throw $exception;
-        return false;
     }
 
     return true;

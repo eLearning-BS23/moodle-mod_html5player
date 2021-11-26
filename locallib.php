@@ -135,7 +135,7 @@ function  html5player_render_embed_html($html5player, $cm, $course, $completioni
     <br>
     <div class="row">
         <div class="col">
-            <?php  html5player_generate_code($html5player); ?>
+            <?php  html5player_generate_code($html5player,$cm); ?>
         </div>
     </div>
     <?php  echo $OUTPUT->render_from_template('theme_allergan_blank/core_course/completion_percentage', $data); ?>
@@ -267,14 +267,15 @@ function html5player_get_unit($key) {
  * @param $html5player
  * @throws coding_exception
  */
-function html5player_generate_code($html5player) {
-    global $PAGE, $OUTPUT;
+function html5player_generate_code($html5player, $cm) {
+    global $OUTPUT;
     echo html_writer::tag('h1', $html5player->name, ['class' => 'mb-5']);
 
     if ($html5player->video_type == 2) {
         $html5player->playlist_id = $html5player->video_id;
     }
     $html5player->unitstxt = html5player_get_unit($html5player->units);
+    $html5player->cmid = $cm->id;
     echo $OUTPUT->render_from_template('mod_html5player/brightcove/video-renderer',$html5player);
 }
 
@@ -339,6 +340,82 @@ function html5player_add_videos(int $html5playerid, array $videoids) {
 
 }
 
+
+
+/**
+ * @throws dml_exception
+ */
+function html5player_add_video(int $html5playerid, stdClass $video) {
+    global $DB;
+
+    $html5video = new stdClass();
+    $html5video->html5player = $html5playerid;
+    $html5video->video_id = $video->id;
+    $html5video->duration = $video->duration;
+    $html5video->poster = $video->images->poster ? $video->images->poster->src : null;
+    $html5video->thumbnail = $video->images->thumbnail ? $video->images->thumbnail->src: null;
+    $html5video->timecreated = time();
+    $html5video->timemodified = time();
+
+    return $DB->insert_record(HTML5PLYAER_VIDEO_TABLE_NAME,$html5video);
+}
+
+/**
+ * @param stdClass $html5video
+ * @param stdClass $video
+ * @return bool
+ * @throws dml_exception
+ */
+function html5player_update_video(stdClass $html5video, stdClass $video) {
+    global $DB;
+
+    $html5video->video_id = $video->id;
+    $html5video->duration = $video->duration;
+    $html5video->poster = $video->images->poster ? $video->images->poster->src : null;
+    $html5video->thumbnail = $video->images->thumbnail ? $video->images->thumbnail->src: null;
+    $html5video->timemodified = time();
+
+    return $DB->update_record(HTML5PLYAER_VIDEO_TABLE_NAME,$html5video);
+}
+
+
+/**
+ * @param int $course
+ * @param int $module
+ * @param int $userid
+ * @param float $progress
+ * @return bool
+ * @throws dml_exception
+ */
+function html5player_set_module_progress(int $course, int $module, int $userid, float $progress) {
+    global $DB;
+
+    $conditions = array(
+        'course' => $course,
+        'cm' => $module,
+        'user' => $userid,
+    );
+
+    $existing_record = $DB->get_record(HTML5PLYAER_VIDEO_TABLE_NAME,$conditions);
+
+    if ($existing_record){
+        $existing_record->progress = $progress;
+        $existing_record->timemodified = time();
+        return $DB->update_record(HTML5PLYAER_VIDEO_TABLE_NAME, $existing_record);
+    }
+
+    $progressions = new stdClass();
+    $progressions->course = $course;
+    $progressions->cm = $module;
+    $progressions->user = $userid;
+    $progressions->progress = $progress;
+    $progressions->timecreated = time();
+    $progressions->timemodified = time();
+
+    return $DB->insert_record(HTML5PLYAER_VIDEO_TABLE_NAME,$progressions,false);
+}
+
+
 /**
  * @throws dml_exception|moodle_exception
  */
@@ -371,15 +448,15 @@ function html5player_get_token(){
     $request       = "https://oauth.brightcove.com/v4/access_token?grant_type=client_credentials";
     $ch            = curl_init($request);
     curl_setopt_array($ch, array(
-            CURLOPT_POST           => TRUE,
-            CURLOPT_RETURNTRANSFER => TRUE,
-            CURLOPT_SSL_VERIFYPEER => FALSE,
-            CURLOPT_TIMEOUT=> 60,
-            CURLOPT_USERPWD        => $auth_string,
-            CURLOPT_HTTPHEADER     => array(
-                'Content-type: application/x-www-form-urlencoded',
-            )
-        ));
+        CURLOPT_POST           => TRUE,
+        CURLOPT_RETURNTRANSFER => TRUE,
+        CURLOPT_SSL_VERIFYPEER => FALSE,
+        CURLOPT_TIMEOUT=> 60,
+        CURLOPT_USERPWD        => $auth_string,
+        CURLOPT_HTTPHEADER     => array(
+            'Content-type: application/x-www-form-urlencoded',
+        )
+    ));
     $response = curl_exec($ch);
     $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
@@ -431,60 +508,4 @@ function html5player_get_video_description(string $account_id, string $video_id)
         throw new moodle_exception('generalexceptionmessage','error','',
             'something went wrong in video duration response');
     }
-}
-
-
-/**
- * @throws dml_exception
- */
-function html5player_add_video(int $html5playerid, stdClass $video) {
-    global $DB;
-
-    $html5video = new stdClass();
-    $html5video->html5player = $html5playerid;
-    $html5video->video_id = $video->id;
-    $html5video->duration = $video->duration;
-    $html5video->poster = $video->images->poster ? $video->images->poster->src : null;
-    $html5video->thumbnail = $video->images->thumbnail ? $video->images->thumbnail->src: null;
-    $html5video->timecreated = time();
-    $html5video->timemodified = time();
-
-    return $DB->insert_record(HTML5PLYAER_VIDEO_TABLE_NAME,$html5video);
-}
-
-
-/**
- * @param int $course
- * @param int $module
- * @param int $userid
- * @param float $progress
- * @return bool
- * @throws dml_exception
- */
-function html5player_set_module_progress(int $course, int $module, int $userid, float $progress) {
-    global $DB;
-
-    $conditions = array(
-        'course' => $course,
-        'cm' => $module,
-        'user' => $userid,
-    );
-
-    $existing_record = $DB->get_record(HTML5PLYAER_VIDEO_TABLE_NAME,$conditions);
-
-    if ($existing_record){
-        $existing_record->progress = $progress;
-        $existing_record->timemodified = time();
-        return $DB->update_record(HTML5PLYAER_VIDEO_TABLE_NAME, $existing_record);
-    }
-
-    $progressions = new stdClass();
-    $progressions->course = $course;
-    $progressions->cm = $module;
-    $progressions->user = $userid;
-    $progressions->progress = $progress;
-    $progressions->timecreated = time();
-    $progressions->timemodified = time();
-
-    return $DB->insert_record(HTML5PLYAER_VIDEO_TABLE_NAME,$progressions,false);
 }

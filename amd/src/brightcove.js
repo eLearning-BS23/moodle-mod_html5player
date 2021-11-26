@@ -1,4 +1,7 @@
 define(['jquery','core/ajax'], function ($, Ajax) {
+
+    let interval;
+
     const loadBrightCoveJs = (accountId, playerId) => {
         window.require.config({
             'paths': {
@@ -30,8 +33,6 @@ define(['jquery','core/ajax'], function ($, Ajax) {
 
     // On Load meta data event and listener
     const html5playerOnLoadMetaData = (player) => {
-        let interval;
-
         player.on('loadedmetadata', function(e){
             // console.log(player.duration());
             const playListsItems = player.playlist();
@@ -40,29 +41,47 @@ define(['jquery','core/ajax'], function ($, Ajax) {
                 console.log(index);
             });
         });
+    }
 
 
-        player.on('playing',(e)=> {
-            console.info(`Video playing...`)
+    const html5playerOnPlay = (player,course, cm, video_id) => {
+        player.on('play',(e)=> {
+            console.info(`Video started playing...`)
             interval = setInterval(function(){
                 const currentTime = player.currentTime();
                 console.log(`Video playing. Video current progress is : ${currentTime}`)
-                set_course_module_progress(85,'6266514986001',currentTime)
+                set_course_module_progress(cm,video_id,currentTime)
             }, 5000);
 
         })
+
+        player.on('pause',(e)=>{
+            clearInterval(interval);
+        })
+
+        player.on('ended',(e)=>{
+            const currentTime = player.currentTime();
+            console.log(`Video ended...`)
+            set_course_module_progress(cm,video_id,currentTime)
+            clearInterval(interval);
+        })
+
+        // player.on('stopped')
     }
 
-    const initBrightCovePlayer = (accountId, playerId) => {
-
+    const initBrightCovePlayer = (course, cm, accountId, playerId, video_id) => {
         // Make brightcove js in Require js module as bc.
         loadBrightCoveJs(accountId, playerId);
 
         require(['bc'], function() {
             console.info(`Brightcove player js loaded...`);
             const myPlayer = videojs.getPlayer(`brightcove-player-${playerId}`);
+            // Do meta loaded stuffs here.
+            console.info('Player meta data loaded...')
             html5playerOnLoadMetaData(myPlayer);
-            // myPlayer.on('playstart')
+
+            // Do Start playing stuffs here.
+            html5playerOnPlay(myPlayer,course, cm, video_id)
         });
     }
 
