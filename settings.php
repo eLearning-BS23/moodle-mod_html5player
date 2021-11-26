@@ -90,6 +90,10 @@ if ($ADMIN->fulltree) {
         get_string('clientsecrete', 'mod_html5player'),
         get_string('clientsecrete_help', 'mod_html5player'), '', PARAM_TEXT, 90));
 
+    $settings->add(new admin_setting_configtext('html5player/trackinginterval',
+        get_string('trackinginterval', 'mod_html5player'),
+        get_string('trackinginterval_help', 'mod_html5player'), 30, PARAM_INT, 50));
+
 //    $settings->add(new brightcove_credential('html5player/heightxxx',
 //        'accountid',
 //        'accountname', '100', PARAM_TEXT, 50));

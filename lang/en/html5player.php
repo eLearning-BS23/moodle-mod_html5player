@@ -82,3 +82,6 @@ $string['clientid'] = 'Client id';
 $string['clientid_help'] = 'Brightcove account Client id';
 $string['clientsecrete'] = 'Client secret';
 $string['clientsecrete_help'] = 'Brightcove account client secret';
+
+$string['trackinginterval'] = 'Tracking interval';
+$string['trackinginterval_help'] = 'Brightcove video progress tracking interval in seconds';

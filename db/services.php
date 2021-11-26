@@ -11,5 +11,13 @@ $functions = array(
         'type'          => 'write',
         'capabilities'  => 'mod/html5player:view',
         'ajax'      => true,
-    )
+    ),
+    'mod_html5player_get_module_progress' => array(
+        'classname'     => 'mod_html5player_external',
+        'methodname'    => 'html5player_get_progress',
+        'description'   => 'get brightcove video progress',
+        'type'          => 'read',
+        'capabilities'  => 'mod/html5player:view',
+        'ajax'      => true,
+    ),
 );

@@ -296,6 +296,38 @@ function html5player_set_module_viewed($html5player, $course, $cm){
 }
 
 /**
+ * @param int $id
+ * @return false|mixed|stdClass
+ * @throws coding_exception
+ * @throws dml_exception
+ */
+function html5player_get_html5player_from_cm(int $id) {
+    global $DB;
+    $cm = get_coursemodule_from_id('html5player', $id, 0, false, MUST_EXIST);
+    return $DB->get_record('html5player', array('id' => $cm->instance), '*', MUST_EXIST);
+}
+
+function html5player_add_tracking_record(stdClass $html5player,stdClass $video, array $params){
+    global $DB;
+    $tracking =new stdClass();
+    $tracking->html5player = $html5player->id;
+    $tracking->html5videoid = $video->id;
+    $tracking->user = $params['userid'];
+    $tracking->progress = $params['progress'];
+    $tracking->timecreated = time();
+    $tracking->timemodified = time();
+
+    return $DB->insert_record(HTML5PLYAER_VIDEO_TRACKING_TABLE_NAME, $tracking);
+}
+
+function html5player_update_tracking_record(stdClass $tracking, array $params){
+    global $DB;
+    $tracking->progress = $params['progress'];
+    $tracking->timemodified = time();
+    $DB->update_record(HTML5PLYAER_VIDEO_TRACKING_TABLE_NAME, $tracking);
+}
+
+/**
  * @param int $courseid
  * @param int $moduleid
  * @param int $userid

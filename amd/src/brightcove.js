@@ -31,15 +31,37 @@ define(['jquery','core/ajax'], function ($, Ajax) {
         });
     }
 
+    const get_course_module_progress = (player, id, videoid) => {
+        let promise;
+
+        promise = Ajax.call([{
+            methodname: 'mod_html5player_get_module_progress',
+            args: {
+                id, // course module id.
+                videoid, // Brightcove video id.
+            }
+        }]);
+
+        promise[0].then(function(results) {
+            console.log(results)
+            const $currentTime = results.progress / 1000;
+            player.currentTime($currentTime)
+
+        }).fail((e) => {
+            console.log(e)
+        });
+    }
+
     // On Load meta data event and listener
-    const html5playerOnLoadMetaData = (player) => {
+    const html5playerOnLoadMetaData = (player, cm, video_id) => {
         player.on('loadedmetadata', function(e){
+            get_course_module_progress(cm,video_id)
             // console.log(player.duration());
-            const playListsItems = player.playlist();
-            playListsItems.forEach( (item, index  ) => {
-                console.log(item);
-                console.log(index);
-            });
+            // const playListsItems = player.playlist();
+            // playListsItems.forEach( (item, index  ) => {
+            //     console.log(item);
+            //     console.log(index);
+            // });
         });
     }
 
@@ -78,7 +100,7 @@ define(['jquery','core/ajax'], function ($, Ajax) {
             const myPlayer = videojs.getPlayer(`brightcove-player-${playerId}`);
             // Do meta loaded stuffs here.
             console.info('Player meta data loaded...')
-            html5playerOnLoadMetaData(myPlayer);
+            html5playerOnLoadMetaData(myPlayer, cm, video_id);
 
             // Do Start playing stuffs here.
             html5playerOnPlay(myPlayer,course, cm, video_id)
