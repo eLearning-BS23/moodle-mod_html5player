@@ -23,6 +23,7 @@
  */
 
 defined('MOODLE_INTERNAL') || die;
+use mod_html5player\brightcove_credential;
 
 if ($ADMIN->fulltree) {
 
@@ -36,7 +37,8 @@ if ($ADMIN->fulltree) {
 
     $videotypes = [
         1 => get_string('single','mod_html5player'),
-        2 => get_string('playlist','mod_html5player'),
+        // Disable Playlist features. We will implement it in a new CR.
+//        2 => get_string('playlist','mod_html5player'),
     ];
     $settings->add(new admin_setting_configselect('html5player/video_type',
         get_string('video_type', 'mod_html5player'),
@@ -79,4 +81,16 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configtext('html5player/height',
         get_string('height', 'mod_html5player'),
         get_string('height_help', 'mod_html5player'), '100', PARAM_TEXT, 50));
+
+    $settings->add(new admin_setting_configtext('html5player/clientid',
+        get_string('clientid', 'mod_html5player'),
+        get_string('clientid_help', 'mod_html5player'), '', PARAM_TEXT, 50));
+
+    $settings->add(new admin_setting_configtext('html5player/clientsecrete',
+        get_string('clientsecrete', 'mod_html5player'),
+        get_string('clientsecrete_help', 'mod_html5player'), '', PARAM_TEXT, 90));
+
+//    $settings->add(new brightcove_credential('html5player/heightxxx',
+//        'accountid',
+//        'accountname', '100', PARAM_TEXT, 50));
 }

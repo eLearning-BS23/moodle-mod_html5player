@@ -24,9 +24,17 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once $CFG->dirroot.'/mod/html5player/locallib.php';
+
 const HTML5_TABLE_NAME = 'html5player';
 
 const HTML5PLYAER_VIDEO_TABLE_NAME = 'html5videos';
+
+const HTML5PLYAER_VIDEO_TRACKING_TABLE_NAME = 'html5tracking';
+
+const HTML5PLYAER_VIDEO_TYPE_SINGLE = 1;
+
+const HTML5PLYAER_VIDEO_TYPE_PLAYLIST = 2;
 /**
  * Returns the information on whether the module supports a feature
  *
@@ -103,7 +111,24 @@ function html5player_add_instance($data, $mform) {
 
     $data->timecreated = time();
     $data->timemodified = time();
+    $transection = $DB->start_delegated_transaction();
+
     $data->id = $DB->insert_record(HTML5_TABLE_NAME, $data);
+
+    try {
+
+        if($data->video_type == HTML5PLYAER_VIDEO_TYPE_PLAYLIST) {
+            // TODO: Retrieve video playlist items and store to html5videos table
+        }else{
+            $videodetails = html5player_get_video_description($data->account_id,$data->video_id);
+            html5player_add_video($data->id, $videodetails);
+        }
+        $DB->commit_delegated_transaction($transection);
+
+    }catch (Exception $exception){
+        $DB->rollback_delegated_transaction($transection, $exception);
+        throw $exception;
+    }
 
     return $data->id;
 }
@@ -113,12 +138,35 @@ function html5player_add_instance($data, $mform) {
  * @param object $data
  * @param object $mform
  * @return bool true
+ * @throws Throwable
+ * @throws coding_exception
+ * @throws dml_transaction_exception
  */
 function html5player_update_instance($data, $mform) {
     global $CFG, $DB;
+
     $data->timemodified = time();
     $data->id           = $data->instance;
-    $DB->update_record('html5player', $data);
+    $transection = $DB->start_delegated_transaction();
+
+    try {
+        $DB->update_record('html5player', $data);
+
+        if($data->video_type == HTML5PLYAER_VIDEO_TYPE_PLAYLIST) {
+            // TODO: Retrieve video playlist items and update to html5videos table.
+        }else{
+            $videodetails = html5player_get_video_description($data->account_id,$data->video_id);
+
+            html5player_add_video($data->instance, $videodetails);
+        }
+        $DB->commit_delegated_transaction($transection);
+
+    }catch (Exception $exception){
+        $DB->rollback_delegated_transaction($transection, $exception);
+        throw $exception;
+        return false;
+    }
+
     return true;
 }
 
@@ -126,6 +174,10 @@ function html5player_update_instance($data, $mform) {
  * Delete html5player instance.
  * @param int $id
  * @return bool true
+ * @throws Throwable
+ * @throws coding_exception
+ * @throws dml_exception
+ * @throws dml_transaction_exception
  */
 function html5player_delete_instance($id) {
     global $DB;
@@ -134,7 +186,23 @@ function html5player_delete_instance($id) {
         return false;
     }
 
-    $DB->delete_records(HTML5_TABLE_NAME, array('id'=>$html5player->id));
+    // Start database transaction.
+    $transection = $DB->start_delegated_transaction();
+    try {
+        // Delete record from html5player instance
+        $DB->delete_records(HTML5_TABLE_NAME, array('id'=>$html5player->id));
+        // Delete Record sets form html5video table
+        $DB->delete_records(HTML5PLYAER_VIDEO_TABLE_NAME, array('html5player'=>$html5player->id));
+        // Delete tracking recrods set form html5tracking table.
+        $DB->delete_records(HTML5PLYAER_VIDEO_TRACKING_TABLE_NAME, array('html5player'=>$html5player->id));
+       // Commit database transaction
+        $DB->commit_delegated_transaction($transection);
+    }catch (Exception $exception){
+        // Rollback Database transaction.
+        $DB->rollback_delegated_transaction($transection, $exception);
+        throw $exception;
+    }
+
 
     return true;
 }

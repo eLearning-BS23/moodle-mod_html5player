@@ -78,3 +78,7 @@ $string['responsive'] = 'Responsive';
 $string['fixed'] = 'Fixed';
 $string['single'] = 'Single';
 $string['playlist'] = 'Playlist';
+$string['clientid'] = 'Client id';
+$string['clientid_help'] = 'Brightcove account Client id';
+$string['clientsecrete'] = 'Client secret';
+$string['clientsecrete_help'] = 'Brightcove account client secret';

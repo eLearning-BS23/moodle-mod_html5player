@@ -76,8 +76,9 @@ class mod_html5player_mod_form extends moodleform_mod {
 
         // Video type.
         $videotypes = [
-            1 => get_string('single','mod_html5player'),
-            2 => get_string('playlist','mod_html5player'),
+            HTML5PLYAER_VIDEO_TYPE_SINGLE => get_string('single','mod_html5player'),
+            // Disable Playlist features. We will implement it in a new CR.
+//            HTML5PLYAER_VIDEO_TYPE_PLAYLIST => get_string('playlist','mod_html5player'),
         ];
         $mform->addElement('select', 'video_type', get_string('video_type', 'html5player'), $videotypes);
         $mform->addHelpButton('video_type', 'video_type', 'html5player');

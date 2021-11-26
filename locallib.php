@@ -26,6 +26,7 @@ use core\activity_dates;
 use core_completion\cm_completion_details;
 use core_completion\progress;
 use core_favourites\service_factory;
+use mod_html5player\BasicAPI;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -338,18 +339,113 @@ function html5player_add_videos(int $html5playerid, array $videoids) {
 
 }
 
+/**
+ * @throws dml_exception|moodle_exception
+ */
+function html5player_get_token(){
+    /**
+     * access-token-proxy.php - proxy for Brightcove RESTful APIs
+     * gets an access token and returns it
+     * Accessing:
+     *         (note you should *always* access the proxy via HTTPS)
+     *     Method: POST
+     *
+     * @post {string} client_id - OAuth2 client id with sufficient permissions for the request
+     * @post {string} client_secret - OAuth2 client secret with sufficient permissions for the request
+     *
+     * @returns {string} $response - JSON response received from the OAuth API
+     */
+
+
+    // CORS enablement and other headers
+    header("Access-Control-Allow-Origin: *");
+    header("Content-type: application/json");
+    header("X-Content-Type-Options: nosniff");
+    header("X-XSS-Protection");
+    $client_id = get_config('html5player','clientid');
+    $client_secret= get_config('html5player','clientsecrete');
+    // note that if you are using this proxy for a single credential
+    // you can just hardcode the client id and secret below instead of passing them
+
+    $auth_string   = "{$client_id}:{$client_secret}";
+    $request       = "https://oauth.brightcove.com/v4/access_token?grant_type=client_credentials";
+    $ch            = curl_init($request);
+    curl_setopt_array($ch, array(
+            CURLOPT_POST           => TRUE,
+            CURLOPT_RETURNTRANSFER => TRUE,
+            CURLOPT_SSL_VERIFYPEER => FALSE,
+            CURLOPT_TIMEOUT=> 60,
+            CURLOPT_USERPWD        => $auth_string,
+            CURLOPT_HTTPHEADER     => array(
+                'Content-type: application/x-www-form-urlencoded',
+            )
+        ));
+    $response = curl_exec($ch);
+    $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    // Check for errors
+    if ($response === FALSE) {
+        throw new moodle_exception('generalexceptionmessage','error','',curl_error($ch));
+    } else {
+        if ($httpcode === 200){
+            return json_decode($response);
+        }
+        throw new moodle_exception('generalexceptionmessage','error','',
+            'something went wrong in authorization token request');
+    }
+
+}
+
+/**
+ * @param string $account_id
+ * @param string $video_id
+ * @return mixed
+ * @throws dml_exception
+ * @throws moodle_exception
+ */
+function html5player_get_video_description(string $account_id, string $video_id){
+    $token = html5player_get_token();
+    $request = "https://cms.api.brightcove.com/v1/accounts/$account_id/videos/$video_id";
+    $ch            = curl_init($request);
+    curl_setopt_array($ch, array(
+        CURLOPT_RETURNTRANSFER => TRUE,
+        CURLOPT_SSL_VERIFYPEER => FALSE,
+        CURLOPT_TIMEOUT=> 60,
+        CURLOPT_HTTPHEADER     => array(
+            "Content-type: application/json",
+            "Authorization: {$token->token_type} {$token->access_token}",
+        )
+    ));
+    $response = curl_exec($ch);
+    $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    // Check for errors
+    if ($response === FALSE) {
+        throw new moodle_exception('generalexceptionmessage','error','',curl_error($ch));
+    } else {
+        if ($httpcode === 200){
+            return json_decode($response);
+        }
+        throw new moodle_exception('generalexceptionmessage','error','',
+            'something went wrong in video duration response');
+    }
+}
+
 
 /**
  * @throws dml_exception
  */
-function html5player_add_video($html5player, stdClass $video) {
+function html5player_add_video(int $html5playerid, stdClass $video) {
     global $DB;
 
     $html5video = new stdClass();
-    $html5video->html5player = $html5player->id;
+    $html5video->html5player = $html5playerid;
     $html5video->video_id = $video->id;
     $html5video->duration = $video->duration;
-    $html5video->poster = $video->poster;
+    $html5video->poster = $video->images->poster ? $video->images->poster->src : null;
+    $html5video->thumbnail = $video->images->thumbnail ? $video->images->thumbnail->src: null;
     $html5video->timecreated = time();
     $html5video->timemodified = time();
 
