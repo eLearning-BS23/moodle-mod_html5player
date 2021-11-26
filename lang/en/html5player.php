@@ -37,6 +37,7 @@ $string['modulenameplural'] = 'HTML5Players';
 // Mod Form.
 $string['name'] = 'Name';
 $string['header:videocontent'] = 'Video Content Info';
+$string['header:videoappearance'] = 'Video Appearance';
 
 // Settings.
 $string['account_id'] = 'Account ID';
@@ -46,7 +47,7 @@ $string['player_id_help'] = 'Brightcove Player ID';
 $string['video_type'] = 'Video Type';
 $string['video_type_help'] = 'Video Type (Single / Playlist)';
 $string['video'] = 'VIDEO';
-$string['video_id'] = 'Video ID';
+$string['video_id'] = 'Video/Playlist ID';
 $string['video_id_help'] = 'Brightcove Video ID';
 $string['playlist_id'] = 'Playlist ID';
 $string['playlist_id_help'] = 'Brightcove Playlist ID';
@@ -77,3 +78,10 @@ $string['responsive'] = 'Responsive';
 $string['fixed'] = 'Fixed';
 $string['single'] = 'Single';
 $string['playlist'] = 'Playlist';
+$string['clientid'] = 'Client id';
+$string['clientid_help'] = 'Brightcove account Client id';
+$string['clientsecrete'] = 'Client secret';
+$string['clientsecrete_help'] = 'Brightcove account client secret';
+
+$string['trackinginterval'] = 'Tracking interval';
+$string['trackinginterval_help'] = 'Brightcove video progress tracking interval in seconds';

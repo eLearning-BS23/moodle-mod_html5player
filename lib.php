@@ -24,7 +24,17 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once $CFG->dirroot.'/mod/html5player/locallib.php';
+
 const HTML5_TABLE_NAME = 'html5player';
+
+const HTML5PLYAER_VIDEO_TABLE_NAME = 'html5videos';
+
+const HTML5PLYAER_VIDEO_TRACKING_TABLE_NAME = 'html5tracking';
+
+const HTML5PLYAER_VIDEO_TYPE_SINGLE = 1;
+
+const HTML5PLYAER_VIDEO_TYPE_PLAYLIST = 2;
 /**
  * Returns the information on whether the module supports a feature
  *
@@ -101,7 +111,24 @@ function html5player_add_instance($data, $mform) {
 
     $data->timecreated = time();
     $data->timemodified = time();
+    $transection = $DB->start_delegated_transaction();
+
     $data->id = $DB->insert_record(HTML5_TABLE_NAME, $data);
+
+    try {
+
+        if($data->video_type == HTML5PLYAER_VIDEO_TYPE_PLAYLIST) {
+            // TODO: Retrieve video playlist items and store to html5videos table
+        }else{
+            $videodetails = html5player_get_video_description($data->account_id,$data->video_id);
+            html5player_add_video($data->id, $videodetails);
+        }
+        $DB->commit_delegated_transaction($transection);
+
+    }catch (Exception $exception){
+        $DB->rollback_delegated_transaction($transection, $exception);
+        throw $exception;
+    }
 
     return $data->id;
 }
@@ -111,12 +138,34 @@ function html5player_add_instance($data, $mform) {
  * @param object $data
  * @param object $mform
  * @return bool true
+ * @throws Throwable
+ * @throws coding_exception
+ * @throws dml_transaction_exception
  */
 function html5player_update_instance($data, $mform) {
     global $CFG, $DB;
+
     $data->timemodified = time();
     $data->id           = $data->instance;
-    $DB->update_record('html5player', $data);
+    $transection = $DB->start_delegated_transaction();
+
+    try {
+        $DB->update_record('html5player', $data);
+
+        if($data->video_type == HTML5PLYAER_VIDEO_TYPE_PLAYLIST) {
+            // TODO: Retrieve video playlist items and update to html5videos table.
+        }else{
+            $videodetails = html5player_get_video_description($data->account_id,$data->video_id);
+            $html5player = $DB->get_record(HTML5PLYAER_VIDEO_TABLE_NAME,array('html5player' => $data->instance));
+            html5player_update_video($html5player, $videodetails);
+        }
+        $DB->commit_delegated_transaction($transection);
+
+    }catch (Exception $exception){
+        $DB->rollback_delegated_transaction($transection, $exception);
+        throw $exception;
+    }
+
     return true;
 }
 
@@ -124,6 +173,10 @@ function html5player_update_instance($data, $mform) {
  * Delete html5player instance.
  * @param int $id
  * @return bool true
+ * @throws Throwable
+ * @throws coding_exception
+ * @throws dml_exception
+ * @throws dml_transaction_exception
  */
 function html5player_delete_instance($id) {
     global $DB;
@@ -132,7 +185,23 @@ function html5player_delete_instance($id) {
         return false;
     }
 
-    $DB->delete_records(HTML5_TABLE_NAME, array('id'=>$html5player->id));
+    // Start database transaction.
+    $transection = $DB->start_delegated_transaction();
+    try {
+        // Delete record from html5player instance
+        $DB->delete_records(HTML5_TABLE_NAME, array('id'=>$html5player->id));
+        // Delete Record sets form html5video table
+        $DB->delete_records(HTML5PLYAER_VIDEO_TABLE_NAME, array('html5player'=>$html5player->id));
+        // Delete tracking recrods set form html5tracking table.
+        $DB->delete_records(HTML5PLYAER_VIDEO_TRACKING_TABLE_NAME, array('html5player'=>$html5player->id));
+       // Commit database transaction
+        $DB->commit_delegated_transaction($transection);
+    }catch (Exception $exception){
+        // Rollback Database transaction.
+        $DB->rollback_delegated_transaction($transection, $exception);
+        throw $exception;
+    }
+
 
     return true;
 }
@@ -157,7 +226,7 @@ function html5player_get_coursemodule_info($coursemodule) {
     $context = context_module::instance($coursemodule->id);
 
     if (!$html5player = $DB->get_record('html5player', array('id'=>$coursemodule->instance),
-        'id, name, display, displayoptions, tobemigrated, intro, introformat,meta_info, account_id, player_id, video_type, video_id,playlist_id,sizing,aspect_ratio,units,width,height')) {
+        'id, name, display, displayoptions, tobemigrated, intro, introformat,meta_info, account_id, player_id, video_type, video_id,sizing,aspect_ratio,units,width,height')) {
         return NULL;
     }
 
@@ -442,17 +511,19 @@ function html5player_dndupload_handle($uploadinfo) {
 
     return html5player_add_instance($data, null);
 }
+
 /**
  * Mark the activity completed (if required) and trigger the course_module_viewed event.
  *
- * @param  stdClass $html5player   html5player object
- * @param  stdClass $course     course object
- * @param  stdClass $cm         course module object
- * @param  stdClass $context    context object
+ * @param stdClass $html5player html5player object
+ * @param stdClass $course course object
+ * @param stdClass $cm course module object
+ * @param stdClass $context context object
+ * @throws dml_exception
  * @since Moodle 3.0
  */
 function html5player_view($html5player, $course, $cm, $context) {
-
+    global $DB, $USER;
     // Trigger course_module_viewed event.
     $params = array(
         'context' => $context,
@@ -465,9 +536,8 @@ function html5player_view($html5player, $course, $cm, $context) {
     $event->add_record_snapshot('html5player', $html5player);
     $event->trigger();
 
-    // Completion.
-    $completion = new completion_info($course);
-    $completion->set_module_viewed($cm);
+    html5player_set_module_viewed($html5player, $course, $cm);
+
 }
 
 /**

@@ -26,6 +26,7 @@ use core\activity_dates;
 use core_completion\cm_completion_details;
 use core_completion\progress;
 use core_favourites\service_factory;
+use mod_html5player\BasicAPI;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -134,7 +135,7 @@ function  html5player_render_embed_html($html5player, $cm, $course, $completioni
     <br>
     <div class="row">
         <div class="col">
-            <?php  html5player_generate_code($html5player); ?>
+            <?php  html5player_generate_code($html5player,$cm); ?>
         </div>
     </div>
     <?php  echo $OUTPUT->render_from_template('theme_allergan_blank/core_course/completion_percentage', $data); ?>
@@ -244,32 +245,299 @@ function html5player_is_favourite() {
 
 }
 
+/**
+ * @return array
+ * @throws coding_exception
+ */
+function html5player_get_unit($key) {
 
-function html5player_get_unit() {
-    return[
+    $units = [
         1 => get_string('pixel','mod_html5player'),
         2 => get_string('em','mod_html5player'),
         3 => get_string('percentage','mod_html5player'),
     ];
+
+    if ($key){
+        return $units[$key];
+    }
+    return $units;
 }
 
-function html5player_generate_code($html5player) {
-    $units = html5player_get_unit();
+/**
+ * @param $html5player
+ * @throws coding_exception
+ */
+function html5player_generate_code($html5player, $cm) {
+    global $OUTPUT;
     echo html_writer::tag('h1', $html5player->name, ['class' => 'mb-5']);
-    ?>
-    <div style="max-width: <?= $html5player->width . $units[$html5player->units] ?>; margin: auto;">
-        <video-js
-                data-account="<?php echo $html5player->account_id ?>"
-                data-player="<?php echo $html5player->player_id ?>"
-                data-embed="default"
-                controls=""
-                data-video-id="<?php echo $html5player->video_id ?>"
-                data-playlist-id="<?php echo $html5player->video_id ? "" : $html5player->playlist_id ?>"
-                data-application-id=""
-                class="vjs-big-play-centered vjs-fluid">
-        </video-js>
-        <script src="https://players.brightcove.net/<?php echo $html5player->account_id ?>/<?php echo $html5player->player_id ?>_default/index.min.js"></script>
 
-    </div>
-    <?php
+    if ($html5player->video_type == 2) {
+        $html5player->playlist_id = $html5player->video_id;
+    }
+    $html5player->unitstxt = html5player_get_unit($html5player->units);
+    $html5player->cmid = $cm->id;
+    echo $OUTPUT->render_from_template('mod_html5player/brightcove/video-renderer',$html5player);
+}
+
+/**
+ * @param $course
+ * @param $cm
+ * @throws dml_exception
+ */
+function html5player_set_module_viewed($html5player, $course, $cm){
+    global $USER;
+    $context = context_course::instance($course->id);
+    $is_enrolled =  is_enrolled($context, $USER->id, '', true);
+
+    if ($is_enrolled && $html5player->completed){
+        $completion = new completion_info($course);
+        $completion->set_module_viewed($cm);
+    }
+}
+
+/**
+ * @param int $id
+ * @return false|mixed|stdClass
+ * @throws coding_exception
+ * @throws dml_exception
+ */
+function html5player_get_html5player_from_cm(int $id) {
+    global $DB;
+    $cm = get_coursemodule_from_id('html5player', $id, 0, false, MUST_EXIST);
+    return $DB->get_record('html5player', array('id' => $cm->instance), '*', MUST_EXIST);
+}
+
+function html5player_add_tracking_record(stdClass $html5player,stdClass $video, array $params){
+    global $DB;
+    $tracking =new stdClass();
+    $tracking->html5player = $html5player->id;
+    $tracking->html5videoid = $video->id;
+    $tracking->user = $params['userid'];
+    $tracking->progress = $params['progress'];
+    $tracking->timecreated = time();
+    $tracking->timemodified = time();
+
+    return $DB->insert_record(HTML5PLYAER_VIDEO_TRACKING_TABLE_NAME, $tracking);
+}
+
+function html5player_update_tracking_record(stdClass $tracking, array $params){
+    global $DB;
+    $tracking->progress = $params['progress'];
+    $tracking->timemodified = time();
+    $DB->update_record(HTML5PLYAER_VIDEO_TRACKING_TABLE_NAME, $tracking);
+}
+
+/**
+ * @param int $courseid
+ * @param int $moduleid
+ * @param int $userid
+ * @return false|mixed|stdClass
+ * @throws dml_exception
+ */
+function html5player_get_module_progress(int $courseid, int $moduleid, int $userid) {
+    global $DB;
+
+    $conditions = array(
+        'course' => $courseid,
+        'cm' => $moduleid,
+        'user' => $userid,
+    );
+
+    return $DB->get_record(HTML5PLYAER_VIDEO_TABLE_NAME,$conditions);
+}
+
+
+/**
+ * @throws Throwable
+ * @throws coding_exception
+ * @throws dml_exception
+ * @throws dml_transaction_exception
+ */
+function html5player_add_videos(int $html5playerid, array $videoids) {
+    global $DB;
+    $html5player = $DB->get_record(HTML5_TABLE_NAME, array('id' => $html5playerid), '*', MUST_EXIST);
+
+    $transaction = $DB->start_delegated_transaction();
+
+    try {
+        foreach ($videoids as $video):
+            html5player_add_video($html5player,$video);
+        endforeach;
+        $DB->commit_delegated_transaction($transaction);
+
+    }catch (dml_exception $exception){
+        $DB->rollback_delegated_transaction($transaction, $exception);
+        throw $exception;
+    }
+
+}
+
+
+
+/**
+ * @throws dml_exception
+ */
+function html5player_add_video(int $html5playerid, stdClass $video) {
+    global $DB;
+
+    $html5video = new stdClass();
+    $html5video->html5player = $html5playerid;
+    $html5video->video_id = $video->id;
+    $html5video->duration = $video->duration;
+    $html5video->poster = $video->images->poster ? $video->images->poster->src : null;
+    $html5video->thumbnail = $video->images->thumbnail ? $video->images->thumbnail->src: null;
+    $html5video->timecreated = time();
+    $html5video->timemodified = time();
+
+    return $DB->insert_record(HTML5PLYAER_VIDEO_TABLE_NAME,$html5video);
+}
+
+/**
+ * @param stdClass $html5video
+ * @param stdClass $video
+ * @return bool
+ * @throws dml_exception
+ */
+function html5player_update_video(stdClass $html5video, stdClass $video) {
+    global $DB;
+
+    $html5video->video_id = $video->id;
+    $html5video->duration = $video->duration;
+    $html5video->poster = $video->images->poster ? $video->images->poster->src : null;
+    $html5video->thumbnail = $video->images->thumbnail ? $video->images->thumbnail->src: null;
+    $html5video->timemodified = time();
+
+    return $DB->update_record(HTML5PLYAER_VIDEO_TABLE_NAME,$html5video);
+}
+
+
+/**
+ * @param int $course
+ * @param int $module
+ * @param int $userid
+ * @param float $progress
+ * @return bool
+ * @throws dml_exception
+ */
+function html5player_set_module_progress(int $course, int $module, int $userid, float $progress) {
+    global $DB;
+
+    $conditions = array(
+        'course' => $course,
+        'cm' => $module,
+        'user' => $userid,
+    );
+
+    $existing_record = $DB->get_record(HTML5PLYAER_VIDEO_TABLE_NAME,$conditions);
+
+    if ($existing_record){
+        $existing_record->progress = $progress;
+        $existing_record->timemodified = time();
+        return $DB->update_record(HTML5PLYAER_VIDEO_TABLE_NAME, $existing_record);
+    }
+
+    $progressions = new stdClass();
+    $progressions->course = $course;
+    $progressions->cm = $module;
+    $progressions->user = $userid;
+    $progressions->progress = $progress;
+    $progressions->timecreated = time();
+    $progressions->timemodified = time();
+
+    return $DB->insert_record(HTML5PLYAER_VIDEO_TABLE_NAME,$progressions,false);
+}
+
+
+/**
+ * @throws dml_exception|moodle_exception
+ */
+function html5player_get_token(){
+    /**
+     * access-token-proxy.php - proxy for Brightcove RESTful APIs
+     * gets an access token and returns it
+     * Accessing:
+     *         (note you should *always* access the proxy via HTTPS)
+     *     Method: POST
+     *
+     * @post {string} client_id - OAuth2 client id with sufficient permissions for the request
+     * @post {string} client_secret - OAuth2 client secret with sufficient permissions for the request
+     *
+     * @returns {string} $response - JSON response received from the OAuth API
+     */
+
+
+    // CORS enablement and other headers
+    header("Access-Control-Allow-Origin: *");
+    header("Content-type: application/json");
+    header("X-Content-Type-Options: nosniff");
+    header("X-XSS-Protection");
+    $client_id = get_config('html5player','clientid');
+    $client_secret= get_config('html5player','clientsecrete');
+    // note that if you are using this proxy for a single credential
+    // you can just hardcode the client id and secret below instead of passing them
+
+    $auth_string   = "{$client_id}:{$client_secret}";
+    $request       = "https://oauth.brightcove.com/v4/access_token?grant_type=client_credentials";
+    $ch            = curl_init($request);
+    curl_setopt_array($ch, array(
+        CURLOPT_POST           => TRUE,
+        CURLOPT_RETURNTRANSFER => TRUE,
+        CURLOPT_SSL_VERIFYPEER => FALSE,
+        CURLOPT_TIMEOUT=> 60,
+        CURLOPT_USERPWD        => $auth_string,
+        CURLOPT_HTTPHEADER     => array(
+            'Content-type: application/x-www-form-urlencoded',
+        )
+    ));
+    $response = curl_exec($ch);
+    $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    // Check for errors
+    if ($response === FALSE) {
+        throw new moodle_exception('generalexceptionmessage','error','',curl_error($ch));
+    } else {
+        if ($httpcode === 200){
+            return json_decode($response);
+        }
+        throw new moodle_exception('generalexceptionmessage','error','',
+            'something went wrong in authorization token request');
+    }
+
+}
+
+/**
+ * @param string $account_id
+ * @param string $video_id
+ * @return mixed
+ * @throws dml_exception
+ * @throws moodle_exception
+ */
+function html5player_get_video_description(string $account_id, string $video_id){
+    $token = html5player_get_token();
+    $request = "https://cms.api.brightcove.com/v1/accounts/$account_id/videos/$video_id";
+    $ch            = curl_init($request);
+    curl_setopt_array($ch, array(
+        CURLOPT_RETURNTRANSFER => TRUE,
+        CURLOPT_SSL_VERIFYPEER => FALSE,
+        CURLOPT_TIMEOUT=> 60,
+        CURLOPT_HTTPHEADER     => array(
+            "Content-type: application/json",
+            "Authorization: {$token->token_type} {$token->access_token}",
+        )
+    ));
+    $response = curl_exec($ch);
+    $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    // Check for errors
+    if ($response === FALSE) {
+        throw new moodle_exception('generalexceptionmessage','error','',curl_error($ch));
+    } else {
+        if ($httpcode === 200){
+            return json_decode($response);
+        }
+        throw new moodle_exception('generalexceptionmessage','error','',
+            'something went wrong in video duration response');
+    }
 }
