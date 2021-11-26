@@ -34,6 +34,7 @@ define(['jquery','core/ajax'], function ($, Ajax) {
     const get_course_module_progress = (player, id, videoid) => {
         let promise;
 
+        console.info(`Geting course video progress from store...`)
         promise = Ajax.call([{
             methodname: 'mod_html5player_get_module_progress',
             args: {
@@ -55,7 +56,7 @@ define(['jquery','core/ajax'], function ($, Ajax) {
     // On Load meta data event and listener
     const html5playerOnLoadMetaData = (player, cm, video_id) => {
         player.on('loadedmetadata', function(e){
-            get_course_module_progress(cm,video_id)
+            get_course_module_progress(player, cm, video_id)
             // console.log(player.duration());
             // const playListsItems = player.playlist();
             // playListsItems.forEach( (item, index  ) => {

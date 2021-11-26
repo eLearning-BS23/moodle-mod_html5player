@@ -175,9 +175,9 @@ class mod_html5player_external extends external_api
         ),'*',IGNORE_MISSING);
 
         return [
-            'html5player' => $html5player,
-            'video' => $video,
-            'tracking' => $tracking
+            $html5player,
+            $video,
+             $tracking
         ];
     }
 
