@@ -30,17 +30,21 @@
 }}
 <div style="max-width: {{width}}{{unitstxt}}; margin: auto;">
     {{#playlist_id}}
-        <video-js
-                id="brightcove-player-{{player_id}}"
-                data-account="{{account_id}}"
-                data-player="{{player_id}}"
-                data-embed="default"
-                data-playlist-id="{{playlist_id}}"
-                data-application-id=""
-                class="vjs-big-play-centered vjs-fluid"
-                controls
-        >
-        </video-js>
+        <div class="vjs-playlist-player-container vjs-playlist-horizontal-enabled">
+            <video-js
+                    id="brightcove-player-{{player_id}}"
+                    data-account="{{account_id}}"
+                    data-player="{{player_id}}"
+                    data-embed="default"
+                    data-video-id=""
+                    data-playlist-id="{{playlist_id}}"
+                    data-application-id=""
+                    class="vjs-big-play-centered vjs-fluid"
+                    controls
+            >
+            </video-js>
+        </div>
+
     {{/playlist_id}}
 
     {{^playlist_id}}
@@ -57,9 +61,3 @@
         </video-js>
     {{/playlist_id}}
 </div>
-{{#js}}
-    M.util.js_pending('mod_html5player/brightcove');
-    require(['mod_html5player/brightcove'], function(amd) {amd.init('{{course}}','{{cmid}}','{{account_id}}', '{{player_id}}','{{video_id}}');
-        M.util.js_complete('mod_html5player/brightcove');
-    });
-{{/js}}

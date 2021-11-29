@@ -41,12 +41,16 @@ class mod_html5player_external extends external_api
                 'id' => new external_value(PARAM_INT, 'course module id', VALUE_REQUIRED,0,false),
                 'videoid' => new external_value(PARAM_INT, 'video id /playlist video id', VALUE_REQUIRED,0,false),
                 'progress' => new external_value(PARAM_FLOAT, 'progress percentage', VALUE_REQUIRED,0,false),
-                'userid' => new external_value(PARAM_INT, 'html5player id', VALUE_OPTIONAL,0,false),
             )
         );
     }
 
     /**
+     * @param int $id
+     * @param int $videoid
+     * @param float $progress
+     * @param int|null $userid
+     * @return array
      * @throws invalid_parameter_exception
      */
     public static function html5player_set_progress(int $id, int $videoid, float $progress, int $userid=null)
@@ -58,10 +62,11 @@ class mod_html5player_external extends external_api
         $params = array(
             'id' => $id,
             'videoid' => $videoid,
-            'userid' => $userid ?? $USER->id,
             'progress' => $progress ? $progress * 1000 : 0,
         );
         $params = self::validate_parameters(self::html5player_set_progress_parameters(), $params);
+
+        $params['userid'] = $userid ?? $USER->id;
 
         try {
             list($html5player, $video, $tracking) = self::get_tracking_realted_info($id, $videoid, $params);
@@ -72,11 +77,13 @@ class mod_html5player_external extends external_api
                 html5player_update_tracking_record($tracking, $params);
             }
             return array(
+                'completed' => false,
                 'status' => true,
                 'warnings' => $warnings
             );
         }catch (Exception $exception){
             return array(
+                'completed' => false,
                 'status' => false,
                 'warnings' => $warnings
             );
@@ -91,6 +98,7 @@ class mod_html5player_external extends external_api
     {
         return new external_single_structure(
             array(
+                'completed' => new external_value(PARAM_BOOL,'Database record updated or not',VALUE_REQUIRED,false,false),
                 'status' => new external_value(PARAM_BOOL,'Database record updated or not',VALUE_REQUIRED,false,false),
                 'warnings' => new external_warnings(),
             )
@@ -105,15 +113,16 @@ class mod_html5player_external extends external_api
         return new external_function_parameters (
             array(
                 'id' => new external_value(PARAM_INT, 'course module id', VALUE_REQUIRED,0,false),
-                'videoid' => new external_value(PARAM_INT, 'video id /playlist video id', VALUE_REQUIRED,0,false),
-                'userid' => new external_value(PARAM_INT, 'html5player id', VALUE_OPTIONAL,0,false),
+                'videoid' => new external_value(PARAM_INT, 'video id /playlist video id', VALUE_REQUIRED,0,false)
             )
         );
     }
 
     /**
-     * @throws coding_exception
-     * @throws dml_exception
+     * @param int $id
+     * @param int $videoid
+     * @param int|null $userid
+     * @return array
      * @throws invalid_parameter_exception
      */
     public static function html5player_get_progress(int $id, int $videoid, int $userid=null)
@@ -125,9 +134,11 @@ class mod_html5player_external extends external_api
         $params = array(
             'id' => $id,
             'videoid' => $videoid,
-            'userid' => $userid ?? $USER->id,
         );
+
         $params = self::validate_parameters(self::html5player_get_progress_parameters(), $params);
+
+        $params['userid'] = $userid ?? $USER->id;
 
         try {
 
@@ -162,7 +173,7 @@ class mod_html5player_external extends external_api
         );
     }
 
-    public static function get_tracking_realted_info($id, $videoid, array $params)
+    public static function get_tracking_realted_info(int $id, int $videoid, array $params)
     {
         global $DB;
         $html5player = html5player_get_html5player_from_cm($id);

@@ -24,7 +24,7 @@ define(['jquery','core/ajax'], function ($, Ajax) {
         }]);
 
         promise[0].then(function(results) {
-            console.log(results)
+            console.info(`Video completed : ${results.completed}`)
 
         }).fail((e) => {
             console.log(e)
@@ -38,15 +38,21 @@ define(['jquery','core/ajax'], function ($, Ajax) {
         promise = Ajax.call([{
             methodname: 'mod_html5player_get_module_progress',
             args: {
-                id, // course module id.
-                videoid, // Brightcove video id.
+                id: +id, // course module id.
+                videoid: +videoid, // Brightcove video id.
             }
         }]);
 
         promise[0].then(function(results) {
-            console.log(results)
-            const $currentTime = results.progress / 1000;
-            player.currentTime($currentTime)
+            console.info(`Fetched result from store`);
+            let progress = results.progress
+            if (progress){
+                console.info(`Video progress is ${progress}ms`);
+                const $currentTime = results.progress / 1000;
+                player.currentTime($currentTime)
+            }else {
+                console.info(`Video progress is null`);
+            }
 
         }).fail((e) => {
             console.log(e)
@@ -66,15 +72,20 @@ define(['jquery','core/ajax'], function ($, Ajax) {
         });
     }
 
+    const html5playerOnPlay = (player,html5player) => {
 
-    const html5playerOnPlay = (player,course, cm, video_id) => {
+        const course = html5player.course;
+        const cm = html5player.cmid;
+        let video_id = html5player.video_id;
+
         player.on('play',(e)=> {
             console.info(`Video started playing...`)
+            video_id = player.mediainfo.id;
             interval = setInterval(function(){
                 const currentTime = player.currentTime();
                 console.log(`Video playing. Video current progress is : ${currentTime}`)
                 set_course_module_progress(cm,video_id,currentTime)
-            }, 5000);
+            }, +html5player.progress_interval);
 
         })
 
@@ -83,7 +94,7 @@ define(['jquery','core/ajax'], function ($, Ajax) {
         })
 
         player.on('ended',(e)=>{
-            const currentTime = player.currentTime();
+            const currentTime = player.duration();
             console.log(`Video ended...`)
             set_course_module_progress(cm,video_id,currentTime)
             clearInterval(interval);
@@ -92,19 +103,25 @@ define(['jquery','core/ajax'], function ($, Ajax) {
         // player.on('stopped')
     }
 
-    const initBrightCovePlayer = (course, cm, accountId, playerId, video_id) => {
+    // const initBrightCovePlayer = (course, cm, accountId, playerId, video_id) => {
+    const initBrightCovePlayer = (html5player) => {
+        html5player = JSON.parse(html5player);
         // Make brightcove js in Require js module as bc.
-        loadBrightCoveJs(accountId, playerId);
+        loadBrightCoveJs(html5player.account_id, html5player.player_id);
 
-        require(['bc'], function() {
+        require(['bc'], function(bc) {
             console.info(`Brightcove player js loaded...`);
-            const myPlayer = videojs.getPlayer(`brightcove-player-${playerId}`);
-            // Do meta loaded stuffs here.
-            console.info('Player meta data loaded...')
-            html5playerOnLoadMetaData(myPlayer, cm, video_id);
 
-            // Do Start playing stuffs here.
-            html5playerOnPlay(myPlayer,course, cm, video_id)
+            // Tracking is enabled for only student.
+            if (html5player.is_student){
+                const myPlayer = videojs.getPlayer(`brightcove-player-${html5player.player_id}`);
+                // Do meta loaded stuffs here.
+                console.info('Player meta data loaded...')
+                html5playerOnLoadMetaData(myPlayer, html5player.cmid, html5player.video_id);
+
+                // Do Start playing stuffs here.
+                html5playerOnPlay(myPlayer,html5player)
+            }
         });
     }
 
