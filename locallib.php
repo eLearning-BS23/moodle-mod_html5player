@@ -448,9 +448,12 @@ function remove_unused_video_record_from_player(moodle_database $DB, array $vide
     $DB->delete_records_select(HTML5PLYAER_VIDEO_TABLE_NAME, "html5player = :html5player AND video_id $notinsql", $params);
 
     // Remove tracking record as video deleted
-    list($insql, $videoparams) = $DB->get_in_or_equal($html5videoids, SQL_PARAMS_NAMED);
-    $videoparams['html5player'] = $instance;
-    $DB->delete_records_select(HTML5PLYAER_VIDEO_TRACKING_TABLE_NAME, "html5player = :html5player AND html5videoid $insql", $videoparams);
+    if (!empty($html5videoids)){
+        list($insql, $videoparams) = $DB->get_in_or_equal($html5videoids, SQL_PARAMS_NAMED);
+        $videoparams['html5player'] = $instance;
+        $DB->delete_records_select(HTML5PLYAER_VIDEO_TRACKING_TABLE_NAME, "html5player = :html5player AND html5videoid $insql", $videoparams);
+    }
+
 }
 
 /**

@@ -27,7 +27,6 @@ defined('MOODLE_INTERNAL') || die;
 require_once($CFG->libdir . '/externallib.php');
 require_once($CFG->dirroot . '/mod/html5player/locallib.php');
 
-use mod_lesson\external\lesson_summary_exporter;
 class mod_html5player_external extends external_api
 {
 
@@ -113,7 +112,7 @@ class mod_html5player_external extends external_api
         return new external_function_parameters (
             array(
                 'id' => new external_value(PARAM_INT, 'course module id', VALUE_REQUIRED,0,false),
-                'videoid' => new external_value(PARAM_INT, 'video id /playlist video id', VALUE_REQUIRED,0,false)
+                'videoid' => new external_value(PARAM_INT, 'Course module id', VALUE_REQUIRED,0,false)
             )
         );
     }
@@ -173,6 +172,88 @@ class mod_html5player_external extends external_api
         );
     }
 
+    /**
+     * @return external_function_parameters
+     */
+    public static function html5player_get_progresses_parameters()
+    {
+        return new external_function_parameters (
+            array(
+                'id' => new external_value(PARAM_INT, 'course module id', VALUE_REQUIRED,0,false)
+            )
+        );
+    }
+
+    /**
+     * @param int $id
+     * @param int $videoid
+     * @param int|null $userid
+     * @return array
+     * @throws invalid_parameter_exception
+     */
+    public static function html5player_get_progresses(int $id)
+    {
+        global $USER, $DB;
+
+        $warnings = array();
+
+        $params = array(
+            'id' => $id,
+        );
+        $params = self::validate_parameters(self::html5player_get_progresses_parameters(), $params);
+
+        $params['userid'] = $USER->id;
+        try {
+            $html5player = html5player_get_html5player_from_cm($id);
+            $params['html5player'] = $html5player->id;
+            $sql = "SELECT v.video_id, v.duration , t.* FROM {html5videos} v LEFT  JOIN {html5tracking} t ON v.id = t.html5videoid
+                    WHERE v.html5player = :html5player AND t.user = :userid ORDER by t.html5videoid ASC";
+
+            $progresses = $DB->get_records_sql($sql, $params);
+
+            return array(
+                'status' => true,
+                'progresses' => $progresses,
+                'warnings' => $warnings
+            );
+        }catch (Exception $exception){
+            return array(
+                'status' => false,
+                'progresses' => array(),
+                'warnings' => $warnings
+            );
+        }
+
+    }
+
+    /**
+     * @return external_single_structure
+     */
+    public static function html5player_get_progresses_returns()
+    {
+        return new external_single_structure(
+            array(
+                'status' => new external_value(PARAM_BOOL,'Database record updated or not',VALUE_DEFAULT,false,false),
+                'progresses' => new external_multiple_structure(
+                    new external_single_structure(
+                        array(
+                        'id' => new external_value(PARAM_INT,'Video tracking id'),
+                        'video_id' => new external_value(PARAM_INT,'Brightcove video id'),
+                        'html5player' => new external_value(PARAM_INT,'Course module id'),
+                        'html5videoid' => new external_value(PARAM_INT,'html5video table id'),
+                        'user' => new external_value(PARAM_INT,'user id'),
+                        'duration' => new external_value(PARAM_INT,'video duration in ms'),
+                        'progress' => new external_value(PARAM_INT,'video progress in ms'),
+                        'timecreated' => new external_value(PARAM_INT,'record create time'),
+                        'timemodified' => new external_value(PARAM_INT,'record modified time'),
+                        )
+                    )
+                ),
+                'warnings' => new external_warnings(),
+            )
+        );
+    }
+
     public static function get_tracking_realted_info(int $id, int $videoid, array $params)
     {
         global $DB;
@@ -183,13 +264,11 @@ class mod_html5player_external extends external_api
         $tracking = $DB->get_record(HTML5PLYAER_VIDEO_TRACKING_TABLE_NAME,array('html5player' => $html5player->id,
             'html5videoid' => $video->id,
             'user' => $params['userid'],
-        ),'*',IGNORE_MISSING);
+        ));
 
-        return [
-            $html5player,
-            $video,
-             $tracking
-        ];
+
+
+        return array($html5player, $video, $tracking);
     }
 
 }

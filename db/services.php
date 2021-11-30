@@ -20,4 +20,12 @@ $functions = array(
         'capabilities'  => 'mod/html5player:view',
         'ajax'      => true,
     ),
+    'mod_html5player_get_module_progresses' => array(
+        'classname'     => 'mod_html5player_external',
+        'methodname'    => 'html5player_get_progresses',
+        'description'   => 'get brightcove videos and tracking progresses',
+        'type'          => 'read',
+        'capabilities'  => 'mod/html5player:view',
+        'ajax'      => true,
+    ),
 );
