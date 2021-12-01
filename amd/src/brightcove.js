@@ -141,6 +141,7 @@ define(['jquery','core/ajax'], function ($, Ajax) {
             console.info(`Fetched module progresses result from store`);
             if (response.progresses?.length > 0){
                 const playlists = player.playlist();
+                console.log(playlists);
                 let result;
                 if (onPageLoaded){
                     console.info('Current item progress set after first time dom load...');

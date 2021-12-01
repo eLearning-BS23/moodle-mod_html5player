@@ -69,6 +69,8 @@ class mod_html5player_external extends external_api
 
         $params['userid'] =$USER->id;
 
+        $transaction = $DB->start_delegated_transaction();
+
         try {
             list($html5player, $video, $tracking) = self::get_tracking_realted_info($id, $videoid, $params);
             if (!empty($params['ended'])){
@@ -80,12 +82,23 @@ class mod_html5player_external extends external_api
             }else{
                 html5player_update_tracking_record($tracking, $params);
             }
+            $viewcompletiondata = html5player_is_video_view_completed($html5player->id);
+
+            if ($viewcompletiondata->completed){
+                list($cm, $course) = html5player_get_cm_course_from_cm($id);
+                $context = context_module::instance($cm->id);
+                html5player_view($html5player, $course, $cm, $context);
+            }
+
+            $DB->commit_delegated_transaction($transaction);
+
             return array(
-                'completed' => false,
+                'completed' => boolval($viewcompletiondata->completed),
                 'status' => true,
                 'warnings' => $warnings
             );
         }catch (Exception $exception){
+            $DB->rollback_delegated_transaction($transaction, $exception);
             return array(
                 'completed' => false,
                 'status' => false,

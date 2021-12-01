@@ -44,8 +44,14 @@ require_course_login($course, true, $cm);
 $context = context_module::instance($cm->id);
 require_capability('mod/html5player:view', $context);
 
-// Completion and trigger events.
-html5player_view($html5player, $course, $cm, $context);
+
+$viewcompletiondata = html5player_is_video_view_completed($html5player->id);
+
+if ($viewcompletiondata->completed){
+    // Completion and trigger events.
+    html5player_view($html5player, $course, $cm, $context);
+}
+
 
 // Print the page header.
 

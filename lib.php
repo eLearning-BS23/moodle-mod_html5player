@@ -534,7 +534,7 @@ function html5player_view($html5player, $course, $cm, $context) {
     $event->add_record_snapshot('html5player', $html5player);
     $event->trigger();
 
-    html5player_set_module_viewed($html5player, $course, $cm);
+    html5player_set_module_viewed($course, $cm);
 
 }
 
