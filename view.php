@@ -22,8 +22,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use core_course\output\activity_navigation;
-
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once(dirname(__FILE__) . '/lib.php');
 require_once(dirname(__FILE__) . '/locallib.php');
@@ -42,22 +40,17 @@ if ($id) {
     throw new Exception('You must specify a course_module ID or an instance ID');
 }
 
-//require_course_login($course->id, false, $cm);
-//
-//$event = \mod_html5player\event\course_module_viewed::create(array(
-//    'objectid' => $PAGE->cm->instance,
-//    'context' => $PAGE->context,
-//));
-//$event->add_record_snapshot('course', $PAGE->course);
-//$event->add_record_snapshot($PAGE->cm->modname, $html5player);
-//$event->trigger();
-
 require_course_login($course, true, $cm);
 $context = context_module::instance($cm->id);
 require_capability('mod/html5player:view', $context);
 
-// Completion and trigger events.
-html5player_view($html5player, $course, $cm, $context);
+
+$viewcompletiondata = html5player_is_video_view_completed($html5player->id);
+if ($viewcompletiondata->completed){
+    // Completion and trigger events.
+    html5player_view($html5player, $course, $cm, $context);
+}
+
 
 // Print the page header.
 

@@ -268,7 +268,7 @@ function html5player_get_unit($key) {
  * @throws coding_exception
  */
 function html5player_generate_code($html5player, $cm) {
-    global $OUTPUT;
+    global $OUTPUT, $PAGE, $USER;
     echo html_writer::tag('h1', $html5player->name, ['class' => 'mb-5']);
 
     if ($html5player->video_type == 2) {
@@ -276,20 +276,27 @@ function html5player_generate_code($html5player, $cm) {
     }
     $html5player->unitstxt = html5player_get_unit($html5player->units);
     $html5player->cmid = $cm->id;
+    $context = context_course::instance($html5player->course);
+    $module_context = context_module::instance($cm->id);
+
+    $html5player->is_student = is_enrolled($context, $USER->id, '', true) &&
+        !has_capability('mod/html5player:addinstance', $module_context);
+    $interval = get_config('html5player','trackinginterval');
+    $html5player->progress_interval = $interval ? $interval * 1000 : 5000;
     echo $OUTPUT->render_from_template('mod_html5player/brightcove/video-renderer',$html5player);
+    $PAGE->requires->js_call_amd('mod_html5player/brightcove', 'init',[json_encode($html5player)]);
 }
 
 /**
  * @param $course
  * @param $cm
- * @throws dml_exception
  */
-function html5player_set_module_viewed($html5player, $course, $cm){
+function html5player_set_module_viewed($course, $cm){
     global $USER;
     $context = context_course::instance($course->id);
     $is_enrolled =  is_enrolled($context, $USER->id, '', true);
 
-    if ($is_enrolled && $html5player->completed){
+    if ($is_enrolled){
         $completion = new completion_info($course);
         $completion->set_module_viewed($cm);
     }
@@ -307,6 +314,26 @@ function html5player_get_html5player_from_cm(int $id) {
     return $DB->get_record('html5player', array('id' => $cm->instance), '*', MUST_EXIST);
 }
 
+/**
+ * @param int $id
+ * @return array
+ * @throws coding_exception
+ * @throws dml_exception
+ */
+function html5player_get_cm_course_from_cm(int $id) {
+    global $DB;
+    $cm = get_coursemodule_from_id('html5player', $id, 0, false, MUST_EXIST);
+    $course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
+    return array($cm, $course);
+}
+
+/**
+ * @param stdClass $html5player
+ * @param stdClass $video
+ * @param array $params
+ * @return bool|int
+ * @throws dml_exception
+ */
 function html5player_add_tracking_record(stdClass $html5player,stdClass $video, array $params){
     global $DB;
     $tracking =new stdClass();
@@ -320,6 +347,11 @@ function html5player_add_tracking_record(stdClass $html5player,stdClass $video, 
     return $DB->insert_record(HTML5PLYAER_VIDEO_TRACKING_TABLE_NAME, $tracking);
 }
 
+/**
+ * @param stdClass $tracking
+ * @param array $params
+ * @throws dml_exception
+ */
 function html5player_update_tracking_record(stdClass $tracking, array $params){
     global $DB;
     $tracking->progress = $params['progress'];
@@ -348,30 +380,17 @@ function html5player_get_module_progress(int $courseid, int $moduleid, int $user
 
 
 /**
- * @throws Throwable
- * @throws coding_exception
+ * @param object $data
  * @throws dml_exception
- * @throws dml_transaction_exception
+ * @throws moodle_exception
  */
-function html5player_add_videos(int $html5playerid, array $videoids) {
-    global $DB;
-    $html5player = $DB->get_record(HTML5_TABLE_NAME, array('id' => $html5playerid), '*', MUST_EXIST);
-
-    $transaction = $DB->start_delegated_transaction();
-
-    try {
-        foreach ($videoids as $video):
-            html5player_add_video($html5player,$video);
-        endforeach;
-        $DB->commit_delegated_transaction($transaction);
-
-    }catch (dml_exception $exception){
-        $DB->rollback_delegated_transaction($transaction, $exception);
-        throw $exception;
-    }
+function html5player_add_videos(object $data) {
+    $videos = html5player_get_playlist_videos_description($data->account_id,$data->video_id);
+    foreach ($videos as $details):
+        html5player_add_video($data->id, $details);
+    endforeach;
 
 }
-
 
 
 /**
@@ -392,22 +411,100 @@ function html5player_add_video(int $html5playerid, stdClass $video) {
     return $DB->insert_record(HTML5PLYAER_VIDEO_TABLE_NAME,$html5video);
 }
 
+
 /**
- * @param stdClass $html5video
+ * @param stdClass $data
+ * @throws dml_exception
+ * @throws moodle_exception
+ */
+function html5player_update_videos(stdClass $data) {
+    global $DB;
+
+    $playlistsvideodetails = html5player_get_playlist_videos_description($data->account_id,$data->video_id);
+
+    $existing_videos = $DB->get_records(HTML5PLYAER_VIDEO_TABLE_NAME,array('html5player' => $data->instance));
+
+    $video_lists = array();
+    foreach ($playlistsvideodetails as $videodetails):
+        $video_lists[] = $videodetails->id;
+        $existing_video = array_filter($existing_videos, function ($video) use ($videodetails){
+            return $video->video_id == $videodetails->id;
+        });
+
+        $reversed_video = array_reverse($existing_video);
+        $video = array_pop($reversed_video);
+        if (!empty($video)){
+            html5player_update_video($video, $videodetails);
+        }else{
+            html5player_add_video($data->instance,$videodetails);
+        }
+
+    endforeach;
+
+    remove_unused_video_record_from_player($DB, $video_lists, $data->instance);
+
+}
+
+/**
+ * @param moodle_database $DB
+ * @param array $video_lists
+ * @param int $instance
+ * @throws coding_exception
+ * @throws dml_exception
+ */
+function remove_unused_video_record_from_player(moodle_database $DB, array $video_lists, int $instance): void
+{
+    if (count($video_lists)) {
+        list($notinsql, $params) = $DB->get_in_or_equal($video_lists, SQL_PARAMS_NAMED, 'param', false);
+        $params['html5player'] = $instance;
+        $html5videoids = $DB->get_fieldset_select(HTML5PLYAER_VIDEO_TABLE_NAME,'id',"html5player = :html5player AND video_id $notinsql", $params);
+
+        $DB->delete_records_select(HTML5PLYAER_VIDEO_TABLE_NAME, "html5player = :html5player AND video_id $notinsql", $params);
+
+        // Remove tracking record as video deleted
+        if (!empty($html5videoids)){
+            list($insql, $videoparams) = $DB->get_in_or_equal($html5videoids, SQL_PARAMS_NAMED);
+            $videoparams['html5player'] = $instance;
+            $DB->delete_records_select(HTML5PLYAER_VIDEO_TRACKING_TABLE_NAME, "html5player = :html5player AND html5videoid $insql", $videoparams);
+        }
+    }
+
+}
+
+/**
+ * @param moodle_database $DB
+ * @param stdClass $data
+ * @throws coding_exception
+ * @throws dml_exception
+ * @throws moodle_exception
+ */
+function html5player_onupdate_process_signle_video(moodle_database $DB, stdClass $data){
+    $video_details = html5player_get_video_description($data->account_id,$data->video_id);
+    remove_unused_video_record_from_player($DB,[$data->video_id],$data->instance);
+    $html5player = $DB->get_record(HTML5PLYAER_VIDEO_TABLE_NAME,array('html5player' => $data->instance));
+    if ($html5player){
+        html5player_update_video($html5player, $video_details);
+    }else{
+        html5player_add_video($data->instance, $video_details);
+    }
+}
+
+/**
  * @param stdClass $video
+ * @param stdClass $video_details
  * @return bool
  * @throws dml_exception
  */
-function html5player_update_video(stdClass $html5video, stdClass $video) {
+function html5player_update_video(stdClass $video, stdClass $video_details) {
     global $DB;
 
-    $html5video->video_id = $video->id;
-    $html5video->duration = $video->duration;
-    $html5video->poster = $video->images->poster ? $video->images->poster->src : null;
-    $html5video->thumbnail = $video->images->thumbnail ? $video->images->thumbnail->src: null;
-    $html5video->timemodified = time();
+    $video->video_id = $video_details->id;
+    $video->duration = $video_details->duration;
+    $video->poster = $video_details->images->poster ? $video_details->images->poster->src : null;
+    $video->thumbnail = $video_details->images->thumbnail ? $video_details->images->thumbnail->src: null;
+    $video->timemodified = time();
 
-    return $DB->update_record(HTML5PLYAER_VIDEO_TABLE_NAME,$html5video);
+    return $DB->update_record(HTML5PLYAER_VIDEO_TABLE_NAME,$video);
 }
 
 
@@ -540,4 +637,60 @@ function html5player_get_video_description(string $account_id, string $video_id)
         throw new moodle_exception('generalexceptionmessage','error','',
             'something went wrong in video duration response');
     }
+}
+
+
+/**
+ * @param string $account_id
+ * @param string $video_id
+ * @return mixed
+ * @throws dml_exception
+ * @throws moodle_exception
+ */
+function html5player_get_playlist_videos_description(string $account_id, string $playlist_id){
+    $token = html5player_get_token();
+    $request = "https://cms.api.brightcove.com/v1/accounts/$account_id/playlists/$playlist_id/videos";
+    $ch            = curl_init($request);
+    curl_setopt_array($ch, array(
+        CURLOPT_RETURNTRANSFER => TRUE,
+        CURLOPT_SSL_VERIFYPEER => FALSE,
+        CURLOPT_TIMEOUT=> 60,
+        CURLOPT_HTTPHEADER     => array(
+            "Content-type: application/json",
+            "Authorization: {$token->token_type} {$token->access_token}",
+        )
+    ));
+    $response = curl_exec($ch);
+    $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    // Check for errors
+    if ($response === FALSE) {
+        throw new moodle_exception('generalexceptionmessage','error','',curl_error($ch));
+    } else {
+        if ($httpcode === 200){
+            $details = json_decode($response);
+            return array_filter($details,function ($item) {
+                return $item->state == 'ACTIVE';
+            });
+        }
+        throw new moodle_exception('generalexceptionmessage','error','',
+            'something went wrong in playlists videos response');
+    }
+}
+
+/**
+ * check if the course video view completed
+ * @param int $html5player
+ * @param int $user
+ * @return false|mixed
+ * @throws dml_exception
+ */
+function html5player_is_video_view_completed(int $html5player){
+    global $DB, $USER;
+    $sql = "select p.course, p.name,
+    IF( (select SUM(v.duration) from {html5videos} v where v.html5player = p.id group by v.html5player)<=
+    (select SUM(t.progress) from {html5tracking} t where t.html5player = p.id AND t.user = :user group by t.html5player)
+    ,true, false) completed from {html5player} p where id= :id limit 1 offset 0";
+    return $DB->get_record_sql($sql, array('id' => $html5player, 'user' => $USER->id));
 }

@@ -37,8 +37,7 @@ if ($ADMIN->fulltree) {
 
     $videotypes = [
         1 => get_string('single','mod_html5player'),
-        // Disable Playlist features. We will implement it in a new CR.
-//        2 => get_string('playlist','mod_html5player'),
+        2 => get_string('playlist','mod_html5player'),
     ];
     $settings->add(new admin_setting_configselect('html5player/video_type',
         get_string('video_type', 'mod_html5player'),
@@ -92,7 +91,7 @@ if ($ADMIN->fulltree) {
 
     $settings->add(new admin_setting_configtext('html5player/trackinginterval',
         get_string('trackinginterval', 'mod_html5player'),
-        get_string('trackinginterval_help', 'mod_html5player'), 30, PARAM_INT, 50));
+        get_string('trackinginterval_help', 'mod_html5player'), 5, PARAM_INT, 10));
 
 //    $settings->add(new brightcove_credential('html5player/heightxxx',
 //        'accountid',

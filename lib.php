@@ -118,10 +118,10 @@ function html5player_add_instance($data, $mform) {
     try {
 
         if($data->video_type == HTML5PLYAER_VIDEO_TYPE_PLAYLIST) {
-            // TODO: Retrieve video playlist items and store to html5videos table
+            html5player_add_videos($data);
         }else{
-            $videodetails = html5player_get_video_description($data->account_id,$data->video_id);
-            html5player_add_video($data->id, $videodetails);
+            $video_details = html5player_get_video_description($data->account_id,$data->video_id);
+            html5player_add_video($data->id, $video_details);
         }
         $DB->commit_delegated_transaction($transection);
 
@@ -147,22 +147,20 @@ function html5player_update_instance($data, $mform) {
 
     $data->timemodified = time();
     $data->id           = $data->instance;
-    $transection = $DB->start_delegated_transaction();
+    $transaction = $DB->start_delegated_transaction();
 
     try {
-        $DB->update_record('html5player', $data);
+        $DB->update_record(HTML5_TABLE_NAME, $data);
 
         if($data->video_type == HTML5PLYAER_VIDEO_TYPE_PLAYLIST) {
-            // TODO: Retrieve video playlist items and update to html5videos table.
+           html5player_update_videos($data);
         }else{
-            $videodetails = html5player_get_video_description($data->account_id,$data->video_id);
-            $html5player = $DB->get_record(HTML5PLYAER_VIDEO_TABLE_NAME,array('html5player' => $data->instance));
-            html5player_update_video($html5player, $videodetails);
+            html5player_onupdate_process_signle_video($DB, $data);
         }
-        $DB->commit_delegated_transaction($transection);
+        $DB->commit_delegated_transaction($transaction);
 
     }catch (Exception $exception){
-        $DB->rollback_delegated_transaction($transection, $exception);
+        $DB->rollback_delegated_transaction($transaction, $exception);
         throw $exception;
     }
 
@@ -536,7 +534,7 @@ function html5player_view($html5player, $course, $cm, $context) {
     $event->add_record_snapshot('html5player', $html5player);
     $event->trigger();
 
-    html5player_set_module_viewed($html5player, $course, $cm);
+    html5player_set_module_viewed($course, $cm);
 
 }
 

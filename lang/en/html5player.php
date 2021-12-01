@@ -33,6 +33,7 @@ $string['pluginname'] = 'HTML5Player';
 $string['modulename'] = 'HTML5Player';
 $string['modulename_help'] = 'Html5player Help';
 $string['modulenameplural'] = 'HTML5Players';
+$string['html5player:view'] = 'HTML5Players instance view';
 
 // Mod Form.
 $string['name'] = 'Name';
