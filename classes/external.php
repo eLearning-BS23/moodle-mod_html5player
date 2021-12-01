@@ -40,6 +40,7 @@ class mod_html5player_external extends external_api
                 'id' => new external_value(PARAM_INT, 'course module id', VALUE_REQUIRED,0,false),
                 'videoid' => new external_value(PARAM_INT, 'video id /playlist video id', VALUE_REQUIRED,0,false),
                 'progress' => new external_value(PARAM_FLOAT, 'progress percentage', VALUE_REQUIRED,0,false),
+                'ended' => new external_value(PARAM_BOOL, 'progress percentage', VALUE_REQUIRED, false,false),
             )
         );
     }
@@ -52,7 +53,7 @@ class mod_html5player_external extends external_api
      * @return array
      * @throws invalid_parameter_exception
      */
-    public static function html5player_set_progress(int $id, int $videoid, float $progress, int $userid=null)
+    public static function html5player_set_progress(int $id, int $videoid, float $progress, bool $ended=false)
     {
         global $USER, $DB;
 
@@ -61,14 +62,18 @@ class mod_html5player_external extends external_api
         $params = array(
             'id' => $id,
             'videoid' => $videoid,
+            'ended' => $ended,
             'progress' => $progress ? $progress * 1000 : 0,
         );
         $params = self::validate_parameters(self::html5player_set_progress_parameters(), $params);
 
-        $params['userid'] = $userid ?? $USER->id;
+        $params['userid'] =$USER->id;
 
         try {
             list($html5player, $video, $tracking) = self::get_tracking_realted_info($id, $videoid, $params);
+            if (!empty($params['ended'])){
+                $params['progress'] = $video->duration;
+            }
 
             if (empty($tracking)){
                 html5player_add_tracking_record($html5player,$video, $params);
@@ -206,8 +211,9 @@ class mod_html5player_external extends external_api
         try {
             $html5player = html5player_get_html5player_from_cm($id);
             $params['html5player'] = $html5player->id;
-            $sql = "SELECT v.video_id, v.duration , t.* FROM {html5videos} v LEFT  JOIN {html5tracking} t ON v.id = t.html5videoid
-                    WHERE v.html5player = :html5player AND t.user = :userid ORDER by t.html5videoid ASC";
+            $sql = "SELECT v.video_id, v.duration , IF(v.duration <= t.progress, true, false) as completed,  t.* 
+                    FROM {html5videos} v LEFT  JOIN {html5tracking} t ON v.id = t.html5videoid
+                    WHERE v.html5player = :html5player AND t.user = :userid ORDER by completed ASC, t.html5videoid ASC";
 
             $progresses = $DB->get_records_sql($sql, $params);
 
@@ -242,6 +248,7 @@ class mod_html5player_external extends external_api
                         'html5player' => new external_value(PARAM_INT,'Course module id'),
                         'html5videoid' => new external_value(PARAM_INT,'html5video table id'),
                         'user' => new external_value(PARAM_INT,'user id'),
+                        'completed' => new external_value(PARAM_BOOL,'video completed'),
                         'duration' => new external_value(PARAM_INT,'video duration in ms'),
                         'progress' => new external_value(PARAM_INT,'video progress in ms'),
                         'timecreated' => new external_value(PARAM_INT,'record create time'),
