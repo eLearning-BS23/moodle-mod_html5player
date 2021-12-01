@@ -46,7 +46,6 @@ require_capability('mod/html5player:view', $context);
 
 
 $viewcompletiondata = html5player_is_video_view_completed($html5player->id);
-
 if ($viewcompletiondata->completed){
     // Completion and trigger events.
     html5player_view($html5player, $course, $cm, $context);

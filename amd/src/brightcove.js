@@ -37,7 +37,7 @@ define(['jquery','core/ajax'], function ($, Ajax) {
             interval = player.setInterval(function(){
                 const currentTime = Math.ceil(player.currentTime());
                 console.log(`Video playing. Total length: ${player.duration()}. Video current progress is : ${player.currentTime()}`)
-                set_course_module_progress(cm,video_id,currentTime)
+                set_course_module_progress(html5player, cm,video_id,currentTime)
             }, +html5player.progress_interval);
 
         })
@@ -52,7 +52,7 @@ define(['jquery','core/ajax'], function ($, Ajax) {
      * @param results
      */
     const html5playerSetProgress = (player, results) => {
-        let progress = results.progress
+        let progress = results?.progress
         if (progress){
             const duration = player.duration();
             const currentTime = Math.floor(progress) / 1000;
@@ -75,7 +75,7 @@ define(['jquery','core/ajax'], function ($, Ajax) {
      * @param progress
      * @param ended
      */
-    const set_course_module_progress = (id, videoid, progress, ended=false) => {
+    const set_course_module_progress = (html5player, id, videoid, progress, ended=false) => {
         let promise;
 
         promise = Ajax.call([{
@@ -89,7 +89,20 @@ define(['jquery','core/ajax'], function ($, Ajax) {
         }]);
 
         promise[0].then(function(results) {
-            console.info(`Video completed : ${results.completed}`)
+            console.info(`Video completed : ${results.completed}`);
+            if (results.completed) {
+                const toggledEvent = new CustomEvent('core_course:manualcompletiontoggled', {
+                    bubbles: true,
+                    detail: {
+                        id: id,
+                        activityname: html5player.name,
+                        completed: results.completed,
+                        withAvailability: '',
+                    }
+                });
+                // Dispatch the manualCompletionToggled custom event.
+                document.dispatchEvent(toggledEvent);
+            }
 
         }).fail((e) => {
             console.log(e)
@@ -141,7 +154,6 @@ define(['jquery','core/ajax'], function ($, Ajax) {
             console.info(`Fetched module progresses result from store`);
             if (response.progresses?.length > 0){
                 const playlists = player.playlist();
-                console.log(playlists);
                 let result;
                 if (onPageLoaded){
                     console.info('Current item progress set after first time dom load...');
@@ -188,7 +200,7 @@ define(['jquery','core/ajax'], function ($, Ajax) {
         player.on('ended',(e)=>{
             const currentTime = Math.ceil( player.duration());
             console.log(`Video ended... Video id: ${player.mediainfo.id}, Duration: ${player.duration()}`)
-            set_course_module_progress(html5player.cmid,html5player.video_id,currentTime,true)
+            set_course_module_progress(html5player, html5player.cmid,html5player.video_id,currentTime,true)
             player.clearInterval(interval);
         })
     }
@@ -221,10 +233,10 @@ define(['jquery','core/ajax'], function ($, Ajax) {
         player.on('ended',(e)=>{
             const currentTime = Math.ceil( player.duration());
             console.log(`Video ended...`)
-            set_course_module_progress(html5player.cmid,player.mediainfo.id,currentTime, true)
+            set_course_module_progress(html5player, html5player.cmid,player.mediainfo.id,currentTime, true)
             player.clearInterval(interval);
-            // const nextVideo = player.playlist.next();
-            // console.info(`Start playing to next video : ${nextVideo.id}`)
+            const nextVideo = player.playlist.next();
+            console.info(`Start playing to next video : ${nextVideo.id}`)
         })
     }
 
