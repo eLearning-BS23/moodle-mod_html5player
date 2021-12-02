@@ -91,7 +91,7 @@ define(['jquery','core/ajax'], function ($, Ajax) {
         promise[0].then(function(results) {
             console.info(`Video completed : ${results.completed}`);
             if (results.completed) {
-                const toggledEvent = new CustomEvent('core_course:manualcompletiontoggled', {
+                const toggledEvent = new CustomEvent('core_course:html5player_view_completed', {
                     bubbles: true,
                     detail: {
                         id: id,

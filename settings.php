@@ -37,7 +37,7 @@ if ($ADMIN->fulltree) {
 
     $videotypes = [
         1 => get_string('single','mod_html5player'),
-        2 => get_string('playlist','mod_html5player'),
+//        2 => get_string('playlist','mod_html5player'),
     ];
     $settings->add(new admin_setting_configselect('html5player/video_type',
         get_string('video_type', 'mod_html5player'),
