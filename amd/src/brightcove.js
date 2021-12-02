@@ -22,6 +22,30 @@ define(['jquery','core/ajax'], function ($, Ajax) {
         });
     }
 
+    const disableForwardScrubbing = function(player) {
+        return {
+            // +++ Implement setSource() +++
+            setSource: function setSource(srcObj, next) {
+                next(null, srcObj);
+            },
+            // +++ Alter the setCurrentTime method +++
+            setCurrentTime: function setCurrentTime(ct) {
+                const percentAllowForward = 50,
+                    // Determine percentage of video played
+                    percentPlayed = player.currentTime() / player.duration() * 100;
+                // Check if the time scrubbed to is less than the current time
+                // or if passed scrub forward percentage
+                if ( ct < player.currentTime() || percentPlayed > percentAllowForward ) {
+                    // If true, move playhead to desired time
+                    return ct;
+                }
+                // If time scrubbed to is past current time and not passed percentage
+                // leave playhead at current time
+                return player.currentTime();
+            }
+        }
+    };
+
     /**
      * Common event listener for brightcove Player.
      * @param player
@@ -247,6 +271,10 @@ define(['jquery','core/ajax'], function ($, Ajax) {
         loadBrightCoveJs(html5player.account_id, html5player.player_id);
 
         require(['bc'], function(bc) {
+
+            // Register the middleware with the player
+            videojs.use('*', disableForwardScrubbing);
+
             console.info(`Brightcove player js loaded...`);
             // Tracking is enabled for only student.
             if (html5player.is_student ){
