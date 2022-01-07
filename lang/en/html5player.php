@@ -26,6 +26,7 @@ defined('MOODLE_INTERNAL') || die();
 
 // System strings.
 $string['html5player'] = 'HTML5Player';
+$string['privacy:metadata'] = 'The Html5Player does not store any personal data.';
 $string['createhtml5player'] = 'Add a new html5player';
 $string['content'] = 'Html5player content';
 $string['pluginadministration'] = 'HTML5Player administration';
@@ -86,3 +87,6 @@ $string['clientsecrete_help'] = 'Brightcove account client secret';
 
 $string['trackinginterval'] = 'Tracking interval';
 $string['trackinginterval_help'] = 'Brightcove video progress tracking interval in seconds';
+
+$string['forwardscrubbing'] = 'Disable forward scrubbing';
+$string['forwardscrubbing_help'] = 'Brightcove video disable forward scrubbing';

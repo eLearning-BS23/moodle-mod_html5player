@@ -34,7 +34,7 @@
                 <INDEX NAME="course" UNIQUE="false" FIELDS="course"/>
             </INDEXES>
         </TABLE>
-        <TABLE NAME="html5videos" COMMENT="html5player video/player video list">
+        <TABLE NAME="html5player_html5videos" COMMENT="html5player video/player video list">
             <FIELDS>
                 <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
                 <FIELD NAME="html5player" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Primary key of html5player table"/>
@@ -49,11 +49,11 @@
                 <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
             </KEYS>
         </TABLE>
-        <TABLE NAME="html5tracking" COMMENT="Video Progress for individual user">
+        <TABLE NAME="html5player_html5trackings" COMMENT="Video Progress for individual user">
             <FIELDS>
                 <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
                 <FIELD NAME="html5player" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Primary key of html5player table"/>
-                <FIELD NAME="html5videoid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Primary key of html5videos table"/>
+                <FIELD NAME="html5videoid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Primary key of html5player_html5videos table"/>
                 <FIELD NAME="user" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
                 <FIELD NAME="progress" TYPE="float" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Video progress"/>
                 <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" />

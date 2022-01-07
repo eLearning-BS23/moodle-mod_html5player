@@ -135,7 +135,7 @@ function  html5player_render_embed_html($html5player, $cm, $course, $completioni
     <br>
     <div class="row">
         <div class="col">
-            <?php  html5player_generate_code($html5player,$cm); ?>
+            <?php  html5player_generate_code($html5player,$cm,$course); ?>
         </div>
     </div>
     <?php  echo $OUTPUT->render_from_template('theme_allergan_blank/core_course/completion_percentage', $data); ?>
@@ -265,11 +265,15 @@ function html5player_get_unit($key) {
 
 /**
  * @param $html5player
+ * @param $cm
+ * @param $course
+ * @return void|null
  * @throws coding_exception
+ * @throws dml_exception
  */
-function html5player_generate_code($html5player, $cm) {
+function html5player_generate_code($html5player, $cm, $course=null) {
     global $OUTPUT, $PAGE, $USER;
-    echo html_writer::tag('h1', $html5player->name, ['class' => 'mb-5']);
+//    echo html_writer::tag('h1', $html5player->name, ['class' => 'mb-5']);
 
     if ($html5player->video_type == 2) {
         $html5player->playlist_id = $html5player->video_id;
@@ -282,9 +286,34 @@ function html5player_generate_code($html5player, $cm) {
     $html5player->is_student = is_enrolled($context, $USER->id, '', true) &&
         !has_capability('mod/html5player:addinstance', $module_context);
     $interval = get_config('html5player','trackinginterval');
+    $forwardscrubbing = get_config('html5player','forwardscrubbing');
     $html5player->progress_interval = $interval ? $interval * 1000 : 5000;
+    $html5player->forwardscrubbing = $forwardscrubbing;
+
+    $html5player->cmcompleted = html5player_is_module_completed($course, $cm, $USER->id);
     echo $OUTPUT->render_from_template('mod_html5player/brightcove/video-renderer',$html5player);
     $PAGE->requires->js_call_amd('mod_html5player/brightcove', 'init',[json_encode($html5player)]);
+}
+
+/**
+ * @param $course
+ * @param $cm
+ * @param $userid
+ * @return bool|int
+ */
+function html5player_is_module_completed($course,$cm, $userid) {
+    $completion = new \completion_info($course);
+
+    // First, let's make sure completion is enabled.
+    if ($completion->is_enabled() && $completion->is_tracked_user($userid)) {
+        if ($completion->is_course_complete($userid)) {
+            return  true;
+        }
+        $data = $completion->get_data($cm, true, $userid);
+        return !($data->completionstate == COMPLETION_INCOMPLETE);
+    }
+
+    return false;
 }
 
 /**
@@ -561,31 +590,24 @@ function html5player_get_token(){
      *
      * @returns {string} $response - JSON response received from the OAuth API
      */
-
-
-    // CORS enablement and other headers
-    header("Access-Control-Allow-Origin: *");
-    header("Content-type: application/json");
-    header("X-Content-Type-Options: nosniff");
-    header("X-XSS-Protection");
     $client_id = get_config('html5player','clientid');
     $client_secret= get_config('html5player','clientsecrete');
-    // note that if you are using this proxy for a single credential
-    // you can just hardcode the client id and secret below instead of passing them
-
-    $auth_string   = "{$client_id}:{$client_secret}";
-    $request       = "https://oauth.brightcove.com/v4/access_token?grant_type=client_credentials";
-    $ch            = curl_init($request);
+    $auth_string = base64_encode($client_id.':'.$client_secret);
+    $ch = curl_init();
     curl_setopt_array($ch, array(
-        CURLOPT_POST           => TRUE,
-        CURLOPT_RETURNTRANSFER => TRUE,
-        CURLOPT_SSL_VERIFYPEER => FALSE,
-        CURLOPT_TIMEOUT=> 60,
-        CURLOPT_USERPWD        => $auth_string,
-        CURLOPT_HTTPHEADER     => array(
-            'Content-type: application/x-www-form-urlencoded',
-        )
+        CURLOPT_URL => 'https://oauth.brightcove.com/v4/access_token?grant_type=client_credentials',
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'POST',
+        CURLOPT_HTTPHEADER => array(
+            'Authorization: Basic '.$auth_string
+        ),
     ));
+
     $response = curl_exec($ch);
     $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
@@ -596,6 +618,11 @@ function html5player_get_token(){
     } else {
         if ($httpcode === 200){
             return json_decode($response);
+        }
+
+        if ($httpcode === 400){
+            throw new moodle_exception('generalexceptionmessage','error','',
+                'Invalid credentials!');
         }
         throw new moodle_exception('generalexceptionmessage','error','',
             'something went wrong in authorization token request');
@@ -689,8 +716,8 @@ function html5player_get_playlist_videos_description(string $account_id, string 
 function html5player_is_video_view_completed(int $html5player){
     global $DB, $USER;
     $sql = "select p.course, p.name,
-    IF( (select SUM(v.duration) from {html5videos} v where v.html5player = p.id group by v.html5player)<=
-    (select SUM(t.progress) from {html5tracking} t where t.html5player = p.id AND t.user = :user group by t.html5player)
+    IF( (select SUM(v.duration) from {html5player_html5videos} v where v.html5player = p.id group by v.html5player)<=
+    (select SUM(t.progress) from {html5player_html5trackings} t where t.html5player = p.id AND t.user = :user group by t.html5player)
     ,true, false) completed from {html5player} p where id= :id limit 1 offset 0";
     return $DB->get_record_sql($sql, array('id' => $html5player, 'user' => $USER->id));
 }

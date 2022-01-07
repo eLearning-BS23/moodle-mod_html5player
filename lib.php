@@ -28,9 +28,9 @@ require_once $CFG->dirroot.'/mod/html5player/locallib.php';
 
 const HTML5_TABLE_NAME = 'html5player';
 
-const HTML5PLYAER_VIDEO_TABLE_NAME = 'html5videos';
+const HTML5PLYAER_VIDEO_TABLE_NAME = 'html5player_html5videos';
 
-const HTML5PLYAER_VIDEO_TRACKING_TABLE_NAME = 'html5tracking';
+const HTML5PLYAER_VIDEO_TRACKING_TABLE_NAME = 'html5player_html5trackings';
 
 const HTML5PLYAER_VIDEO_TYPE_SINGLE = 1;
 
@@ -190,7 +190,7 @@ function html5player_delete_instance($id) {
         $DB->delete_records(HTML5_TABLE_NAME, array('id'=>$html5player->id));
         // Delete Record sets form html5video table
         $DB->delete_records(HTML5PLYAER_VIDEO_TABLE_NAME, array('html5player'=>$html5player->id));
-        // Delete tracking recrods set form html5tracking table.
+        // Delete tracking recrods set form html5player_html5trackings table.
         $DB->delete_records(HTML5PLYAER_VIDEO_TRACKING_TABLE_NAME, array('html5player'=>$html5player->id));
        // Commit database transaction
         $DB->commit_delegated_transaction($transection);
@@ -221,8 +221,6 @@ function html5player_get_coursemodule_info($coursemodule) {
     require_once("$CFG->libdir/resourcelib.php");
     require_once($CFG->libdir.'/completionlib.php');
 
-    $context = context_module::instance($coursemodule->id);
-
     if (!$html5player = $DB->get_record('html5player', array('id'=>$coursemodule->instance),
         'id, name, display, displayoptions, tobemigrated, intro, introformat,meta_info, account_id, player_id, video_type, video_id,sizing,aspect_ratio,units,width,height')) {
         return NULL;
@@ -246,9 +244,6 @@ function html5player_get_coursemodule_info($coursemodule) {
     $height = empty($options['popupheight']) ? 450 : $options['popupheight'];
     $wh = "width=$width,height=$height,toolbar=no,location=no,menubar=no,copyhistory=no,status=no,directories=no,scrollbars=yes,resizable=yes";
     $info->onclick = "window.open('$fullurl', '', '$wh'); return false;";
-
-    return $info;
-
     return $info;
 }
 

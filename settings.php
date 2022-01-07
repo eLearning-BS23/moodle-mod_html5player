@@ -93,6 +93,10 @@ if ($ADMIN->fulltree) {
         get_string('trackinginterval', 'mod_html5player'),
         get_string('trackinginterval_help', 'mod_html5player'), 5, PARAM_INT, 10));
 
+    $settings->add(new admin_setting_configcheckbox('html5player/forwardscrubbing',
+        get_string('forwardscrubbing', 'mod_html5player'),
+        get_string('forwardscrubbing_help', 'mod_html5player'), 1, 1, 0));
+
 //    $settings->add(new brightcove_credential('html5player/heightxxx',
 //        'accountid',
 //        'accountname', '100', PARAM_TEXT, 50));

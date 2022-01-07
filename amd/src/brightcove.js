@@ -21,30 +21,38 @@ define(['jquery','core/ajax'], function ($, Ajax) {
             waitSeconds: 30
         });
     }
-
-    const disableForwardScrubbing = function(player) {
-        return {
-            // +++ Implement setSource() +++
-            setSource: function setSource(srcObj, next) {
-                next(null, srcObj);
-            },
-            // +++ Alter the setCurrentTime method +++
-            setCurrentTime: function setCurrentTime(ct) {
-                const percentAllowForward = 50,
-                    // Determine percentage of video played
-                    percentPlayed = player.currentTime() / player.duration() * 100;
-                // Check if the time scrubbed to is less than the current time
-                // or if passed scrub forward percentage
-                if ( ct < player.currentTime() || percentPlayed > percentAllowForward ) {
-                    // If true, move playhead to desired time
-                    return ct;
-                }
-                // If time scrubbed to is past current time and not passed percentage
-                // leave playhead at current time
-                return player.currentTime();
-            }
+    
+    const disableCompletionButton = (isCompleteAble) => {
+        const markCompleteBtn = document.getElementById('btn-completion');
+        if (markCompleteBtn){
+            markCompleteBtn.disabled = !isCompleteAble;
         }
-    };
+
+    }
+
+    // const disableForwardScrubbing = function(player) {
+    //     return {
+    //         // +++ Implement setSource() +++
+    //         setSource: function setSource(srcObj, next) {
+    //             next(null, srcObj);
+    //         },
+    //         // +++ Alter the setCurrentTime method +++
+    //         setCurrentTime: function setCurrentTime(ct) {
+    //             const percentAllowForward = 95,
+    //                 // Determine percentage of video played
+    //                 percentPlayed = player.currentTime() / player.duration() * 100;
+    //             // Check if the time scrubbed to is less than the current time
+    //             // or if passed scrub forward percentage
+    //             if ( ct < player.currentTime() || percentPlayed > percentAllowForward ) {
+    //                 // If true, move playhead to desired time
+    //                 return ct;
+    //             }
+    //             // If time scrubbed to is past current time and not passed percentage
+    //             // leave playhead at current time
+    //             return player.currentTime();
+    //         }
+    //     }
+    // };
 
     /**
      * Common event listener for brightcove Player.
@@ -84,9 +92,9 @@ define(['jquery','core/ajax'], function ($, Ajax) {
             if(duration >= currentTime){
                 player.currentTime(currentTime);
             }
-            // else {
-            //     player.currentTime(duration - 1);
-            // }
+            else {
+                disableCompletionButton(false);
+            }
         }else {
             console.info(`Video progress is ${progress}`);
         }
@@ -146,7 +154,7 @@ define(['jquery','core/ajax'], function ($, Ajax) {
             methodname: 'mod_html5player_get_module_progress',
             args: {
                 id: html5player.cmid, // course module id.
-                videoid: html5player.video_id, // html5videos table PK.
+                videoid: html5player.video_id, // html5player_html5videos table PK.
             }
         }]);
 
@@ -210,6 +218,11 @@ define(['jquery','core/ajax'], function ($, Ajax) {
         player.on('loadedmetadata', function(e){
             console.info('Single video player meta data loaded...')
             get_single_video_course_module_progress(player,html5player);
+            console.log(html5player.forwardscrubbing);
+            if (+html5player.forwardscrubbing){
+                console.info('Forward scrubbing enabled. Progress control disabling using css...');
+                $(".vjs-progress-control").css('pointer-events','none');
+            }
         });
     }
 
@@ -223,9 +236,12 @@ define(['jquery','core/ajax'], function ($, Ajax) {
 
         player.on('ended',(e)=>{
             const currentTime = Math.ceil( player.duration());
-            console.log(`Video ended... Video id: ${player.mediainfo.id}, Duration: ${player.duration()}`)
+            console.log(`Video ended... Video id: ${player.mediainfo.id}, Duration: ${player.duration()}`);
             set_course_module_progress(html5player, html5player.cmid,html5player.video_id,currentTime,true)
             player.clearInterval(interval);
+            // if (!html5player.cmcompleted){
+            //     disableCompletionButton(true);
+            // }
         })
     }
 
@@ -233,7 +249,6 @@ define(['jquery','core/ajax'], function ($, Ajax) {
      * On load playlists meta data
      * @param player
      * @param html5player
-     * @param onpageload
      */
     const html5playerOnLoadPlaylistMetaData = (player, html5player) => {
         player.on('loadedmetadata',(e) => {
@@ -267,13 +282,14 @@ define(['jquery','core/ajax'], function ($, Ajax) {
     // const initBrightCovePlayer = (course, cm, accountId, playerId, video_id) => {
     const initBrightCovePlayer = (html5player) => {
         html5player = JSON.parse(html5player);
+        disableCompletionButton(false);
         // Make brightcove js in Require js module as bc.
         loadBrightCoveJs(html5player.account_id, html5player.player_id);
 
         require(['bc'], function(bc) {
 
             // Register the middleware with the player
-            videojs.use('*', disableForwardScrubbing);
+            //videojs.use('*', disableForwardScrubbing);
 
             console.info(`Brightcove player js loaded...`);
             // Tracking is enabled for only student.
@@ -284,6 +300,7 @@ define(['jquery','core/ajax'], function ($, Ajax) {
                     // Do meta loaded stuffs here.
                     console.info('User is a student and Video type single video...');
                     html5playerOnLoadSingleVideoMetaData(myPlayer, html5player);
+                    disableCompletionButton(false);
                     // Do Start playing stuffs here.
                     html5playerOnPlaySingleVideo(myPlayer,html5player);
                 }else if( html5player.video_type == VIDEO_TYPE_PLAYLIST) {
