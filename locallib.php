@@ -76,8 +76,10 @@ function html5player_display_embed_video($html5player, $cm, $course) {
     $completiondetails = cm_completion_details::get_instance($cminfo, $USER->id);
     $activitydates = activity_dates::get_dates_for_module($cminfo, $USER->id);
     $completioninfo = $OUTPUT->activity_information($cminfo, $completiondetails, $activitydates);
-
+    echo $OUTPUT->activity_information($cminfo, $completiondetails, $activitydates);
     html5player_render_embed_html($html5player, $cm, $course,$completioninfo);
+
+    //echo html_writer::tag('h1', $html5player->name, ['class' => 'heading-1']);
     echo $OUTPUT->footer();
 
     die;
@@ -86,7 +88,7 @@ function html5player_display_embed_video($html5player, $cm, $course) {
 
 function  html5player_render_embed_html($html5player, $cm, $course, $completioninfo) {
     global $OUTPUT, $COURSE, $PAGE, $USER;
-    echo $OUTPUT->activity_navigation();
+    //echo $OUTPUT->activity_navigation();
     $is_favourite = html5player_is_favourite();
     $progressPercentage = progress::get_course_progress_percentage($COURSE);
     $progressPercentage = floor($progressPercentage);
@@ -138,32 +140,32 @@ function  html5player_render_embed_html($html5player, $cm, $course, $completioni
             <?php  html5player_generate_code($html5player,$cm,$course); ?>
         </div>
     </div>
-    <?php  echo $OUTPUT->render_from_template('theme_allergan_blank/core_course/completion_percentage', $data); ?>
+<!--    --><?php // echo $OUTPUT->render_from_template('theme_allergan_blank/core_course/completion_percentage', $data); ?>
 
-    <div class="row mt-5">
-        <div class="col-md-8 ">
-            <?php
-            html5player_print_intro($html5player, $cm, $course,true);
-            ?>
-        </div>
-
-        <div class="col-md-4">
-            <?php
-            $html5playermeta_info  = trim($html5player->meta_info);
-            if (!empty($html5playermeta_info)) :
-                $meta_infos = explode("\n", trim($html5player->meta_info));
-                echo html_writer::start_tag('ul',array('class' => 'mod-custommod-right-content mt-3'));
-                foreach ($meta_infos as $meta_info):
-                    $infos = explode(":",$meta_info);
-                    if (isset($infos[0] ) && isset($infos[1])){
-                        echo "<p class='mod-custommod-task'>$infos[0]:<span class='mod-custommod-subject'>$infos[1]</span></p>";
-                    }
-                endforeach;
-                echo html_writer::end_tag('ul');
-            endif;
-            ?>
-        </div>
-    </div>
+<!--    <div class="row mt-5">-->
+<!--        <div class="col-md-8 ">-->
+<!--            --><?php
+//            html5player_print_intro($html5player, $cm, $course,true);
+//            ?>
+<!--        </div>-->
+<!---->
+<!--        <div class="col-md-4">-->
+<!--            --><?php
+//            $html5playermeta_info  = trim($html5player->meta_info);
+//            if (!empty($html5playermeta_info)) :
+//                $meta_infos = explode("\n", trim($html5player->meta_info));
+//                echo html_writer::start_tag('ul',array('class' => 'mod-custommod-right-content mt-3'));
+//                foreach ($meta_infos as $meta_info):
+//                    $infos = explode(":",$meta_info);
+//                    if (isset($infos[0] ) && isset($infos[1])){
+//                        echo "<p class='mod-custommod-task'>$infos[0]:<span class='mod-custommod-subject'>$infos[1]</span></p>";
+//                    }
+//                endforeach;
+//                echo html_writer::end_tag('ul');
+//            endif;
+//            ?>
+<!--        </div>-->
+<!--    </div>-->
     <?php
 
 }
@@ -223,12 +225,14 @@ function html5player_print_header($html5player, $cm, $course) {
 function html5player_print_heading($html5player, $cm, $course, $notused = false) {
     global $OUTPUT;
 
-    echo html_writer::start_div('row mb-5');
-    echo html_writer::start_div('col');
-    echo html_writer::tag('p',get_string('video','mod_html5player'),array('class' => 'sub-heading'));
-    echo $OUTPUT->heading(format_string($html5player->name), 2, 'text-primary');
-    echo html_writer::end_div();
-    echo html_writer::end_div();
+//    echo html_writer::start_div('row mb-5');
+//    echo html_writer::start_div('col');
+//    echo html_writer::tag('p',get_string('video','mod_html5player'),array('class' => 'sub-heading'));
+//    echo $OUTPUT->heading(format_string($html5player->name), 2, 'text-primary');
+//    echo html_writer::end_div();
+//    echo html_writer::end_div();
+
+    echo $OUTPUT->heading(format_string($html5player->name), 2);
 
 }
 

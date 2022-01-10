@@ -1,0 +1,25 @@
+.path-mod-html5player .vjs-live .vjs-time-control {
+    display: block;
+}
+
+.path-mod-html5player .video-js .vjs-current-time,
+.vjs-no-flex .vjs-current-time {
+    display: block;
+}
+
+.path-mod-html5player .video-js .vjs-duration,
+.vjs-no-flex .vjs-duration {
+    display: block;
+}
+
+.path-mod-html5player .bc-player-default_default .vjs-progress-control {
+    position: absolute;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 1.5em;
+    top: -1.5em;
+}
+.path-mod-html5player .bc-player-default_default .vjs-progress-control .vjs-progress-holder {
+    margin: 0;
+}

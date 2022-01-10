@@ -17,9 +17,9 @@
 /**
  * html5player plugin settings.
  *
- * @package mod_html5player
- * @copyright  2021 Brain station 23 ltd <>  {@link https://brainstation-23.com/}
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package     mod_html5player
+ * @copyright   2021 Brain station 23 ltd <>  {@link https://brainstation-23.com/}
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die;
