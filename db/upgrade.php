@@ -37,9 +37,9 @@
  * Please do not forget to use upgrade_set_timeout()
  * before any action that may take longer time to finish.
  *
- * @package mod_html5player
- * @copyright  2021 Brain station 23 ltd <>  {@link https://brainstation-23.com/}
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package     mod_html5player
+ * @copyright   2021 Brain station 23 ltd <>  {@link https://brainstation-23.com/}
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die;
@@ -51,6 +51,28 @@ defined('MOODLE_INTERNAL') || die;
  * @return bool
  */
 function xmldb_html5player_upgrade($oldversion) {
-//    global $CFG, $DB;
+    global $DB;
+
+    $dbman = $DB->get_manager();
+
+
+    if ($oldversion < 2021113004) {
+
+        $table = new xmldb_table('html5videos');
+        // Conditionally launch rename table for html5videos.
+        if ($dbman->table_exists($table)) {
+            $dbman->rename_table($table, 'html5player_html5videos');
+        }
+
+        $table = new xmldb_table('html5tracking');
+        // Conditionally launch rename table for html5tracking.
+        if ($dbman->table_exists($table)) {
+            $dbman->rename_table($table, 'html5player_html5trackings');
+        }
+
+        // Savepoint reached.
+        upgrade_plugin_savepoint(true, 2021113004, 'mod', 'html5player');
+    }
+
     return true;
 }

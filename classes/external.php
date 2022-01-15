@@ -225,7 +225,7 @@ class mod_html5player_external extends external_api
             $html5player = html5player_get_html5player_from_cm($id);
             $params['html5player'] = $html5player->id;
             $sql = "SELECT v.video_id, v.duration , IF(v.duration <= t.progress, true, false) as completed,  t.* 
-                    FROM {html5videos} v LEFT  JOIN {html5tracking} t ON v.id = t.html5videoid
+                    FROM {html5player_html5videos} v LEFT  JOIN {html5player_html5trackings} t ON v.id = t.html5videoid
                     WHERE v.html5player = :html5player AND t.user = :userid ORDER by completed ASC, t.html5videoid ASC";
 
             $progresses = $DB->get_records_sql($sql, $params);

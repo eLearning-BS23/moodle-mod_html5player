@@ -17,9 +17,9 @@
 /**
  * html5player plugin settings.
  *
- * @package mod_html5player
- * @copyright  2021 Brain station 23 ltd <>  {@link https://brainstation-23.com/}
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package     mod_html5player
+ * @copyright   2021 Brain station 23 ltd <>  {@link https://brainstation-23.com/}
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die;
@@ -92,6 +92,10 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configtext('html5player/trackinginterval',
         get_string('trackinginterval', 'mod_html5player'),
         get_string('trackinginterval_help', 'mod_html5player'), 5, PARAM_INT, 10));
+
+    $settings->add(new admin_setting_configcheckbox('html5player/forwardscrubbing',
+        get_string('forwardscrubbing', 'mod_html5player'),
+        get_string('forwardscrubbing_help', 'mod_html5player'), 1, 1, 0));
 
 //    $settings->add(new brightcove_credential('html5player/heightxxx',
 //        'accountid',
