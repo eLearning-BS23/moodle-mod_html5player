@@ -12,14 +12,14 @@
     display: block;
 }
 
-.path-mod-html5player .bc-player-default_default .vjs-progress-control {
+.path-mod-html5player .vjs-big-play-centered .vjs-progress-control {
     position: absolute;
     left: 0;
     right: 0;
     width: 100%;
-    height: 1.5em;
-    top: -1.5em;
+    height: 1em;
+    top: -1em;
 }
-.path-mod-html5player .bc-player-default_default .vjs-progress-control .vjs-progress-holder {
+.path-mod-html5player .vjs-big-play-centered .vjs-progress-control .vjs-progress-holder {
     margin: 0;
 }
